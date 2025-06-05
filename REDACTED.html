@@ -1,0 +1,3081 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hacker's Terminal</title>
+    <style>
+        :root {
+            --act1-color: #0f0;
+            --act2-color: #00f;
+            --act3-color: #f00;
+            --act4-color: #f0f;
+            --current-color: var(--act1-color);
+        }
+
+        body {
+            background-color: #000;
+            color: var(--current-color);
+            font-family: 'Courier New', monospace;
+            margin: 0;
+            padding: 20px;
+            overflow-x: hidden;
+            transition: color 1s;
+        }
+
+        #terminal {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid var(--current-color);
+            box-shadow: 0 0 20px var(--current-color);
+            min-height: 400px;
+            position: relative;
+            overflow: hidden;
+            transition: all 1s;
+        }
+
+        #terminal::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(
+                rgba(0, 255, 0, 0.1) 50%,
+                rgba(0, 0, 0, 0.1) 50%
+            );
+            background-size: 100% 4px;
+            pointer-events: none;
+            animation: scanline 8s linear infinite;
+            opacity: 0.3;
+            transition: background 1s;
+        }
+
+        .act2 #terminal::before {
+            background: linear-gradient(
+                rgba(0, 0, 255, 0.1) 50%,
+                rgba(0, 0, 0, 0.1) 50%
+            );
+        }
+
+        .corporate-logo {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 24px;
+            opacity: 0;
+            transition: opacity 1s;
+        }
+
+        .act2 .corporate-logo {
+            opacity: 0.7;
+        }
+
+        .transition-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #000;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 1s;
+        }
+
+        .transition-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .transition-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #fff;
+            font-size: 24px;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 1s;
+        }
+
+        .transition-message.active {
+            opacity: 1;
+        }
+
+        button {
+            background-color: #000;
+            color: var(--current-color);
+            border: 1px solid var(--current-color);
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        button:hover {
+            background-color: var(--current-color);
+            color: #000;
+            box-shadow: 0 0 10px var(--current-color);
+        }
+
+        .act2 button {
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        .upgrade-category {
+            margin: 15px 0;
+            padding: 10px;
+            border: 1px solid var(--current-color);
+            transition: all 1s;
+        }
+
+        .act2 .upgrade-category {
+            background: rgba(0, 0, 255, 0.1);
+            border-radius: 8px;
+        }
+
+        .resource-display {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid var(--current-color);
+            transition: all 1s;
+        }
+
+        .act2 .resource-display {
+            background: rgba(0, 0, 255, 0.1);
+            border-radius: 8px;
+        }
+
+        .glitch {
+            animation: glitch 0.3s infinite;
+        }
+
+        @keyframes glitch {
+            0% { transform: translate(0) }
+            20% { transform: translate(-2px, 2px) }
+            40% { transform: translate(-2px, -2px) }
+            60% { transform: translate(2px, 2px) }
+            80% { transform: translate(2px, -2px) }
+            100% { transform: translate(0) }
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .upgrade-category h3 {
+            margin-top: 0;
+            color: var(--current-color);
+            text-shadow: 0 0 5px var(--current-color);
+        }
+
+        .mysterious-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #f00;
+            font-size: 24px;
+            text-shadow: 0 0 10px #f00;
+            animation: mysteriousFade 2s forwards;
+            z-index: 1000;
+            pointer-events: none;
+        }
+
+        @keyframes mysteriousFade {
+            0% { opacity: 0; }
+            20% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        .prestige-button {
+            background-color: #300;
+            color: #f00;
+            border: 1px solid #f00;
+            margin-top: 20px;
+        }
+
+        .prestige-button:hover {
+            background-color: #f00;
+            color: #000;
+            box-shadow: 0 0 20px #f00;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        #log {
+            height: 200px;
+            overflow-y: auto;
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid var(--current-color);
+            position: relative;
+        }
+
+        .log-entry {
+            margin: 5px 0;
+            opacity: 0;
+            animation: typewriter 0.5s forwards;
+        }
+
+        @keyframes typewriter {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 10px;
+            height: 20px;
+            background-color: var(--current-color);
+            margin-left: 5px;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        #command-line {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        #command-input {
+            background: transparent;
+            border: none;
+            color: var(--current-color);
+            font-family: 'Courier New', monospace;
+            font-size: 1em;
+            outline: none;
+            flex-grow: 1;
+        }
+
+        .system-status {
+            color: var(--current-color);
+            font-style: italic;
+            opacity: 0.7;
+        }
+
+        .command-output {
+            color: var(--current-color);
+            margin: 5px 0;
+            padding-left: 20px;
+        }
+
+        .corporate-target {
+            margin: 10px 0;
+            padding: 15px;
+            border: 1px solid var(--current-color);
+            border-radius: 8px;
+            background: rgba(0, 0, 255, 0.1);
+            transition: all 0.3s;
+        }
+
+        .corporate-target:hover {
+            background: rgba(0, 0, 255, 0.2);
+            transform: translateX(5px);
+        }
+
+        .corporate-target.locked {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .heat-meter {
+            width: 100%;
+            height: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--current-color);
+            border-radius: 10px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+
+        .heat-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00f, #f00);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .crew-member {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid var(--current-color);
+            border-radius: 4px;
+            background: rgba(0, 0, 255, 0.1);
+        }
+
+        .crew-stats {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .glitch-text {
+            animation: textGlitch 0.3s infinite;
+        }
+
+        @keyframes textGlitch {
+            0% { transform: translate(0) }
+            20% { transform: translate(-2px, 2px) }
+            40% { transform: translate(-2px, -2px) }
+            60% { transform: translate(2px, 2px) }
+            80% { transform: translate(2px, -2px) }
+            100% { transform: translate(0) }
+        }
+
+        @keyframes textCorruption {
+            0% { filter: none; }
+            10% { filter: blur(1px) brightness(1.5); }
+            20% { filter: none; }
+            30% { filter: blur(2px) brightness(2); }
+            40% { filter: none; }
+            50% { filter: blur(1px) brightness(1.5); }
+            60% { filter: none; }
+            70% { filter: blur(2px) brightness(2); }
+            80% { filter: none; }
+            90% { filter: blur(1px) brightness(1.5); }
+            100% { filter: none; }
+        }
+
+        @keyframes screenFlicker {
+            0% { opacity: 1; }
+            5% { opacity: 0.8; }
+            10% { opacity: 1; }
+            15% { opacity: 0.9; }
+            20% { opacity: 1; }
+            25% { opacity: 0.7; }
+            30% { opacity: 1; }
+            35% { opacity: 0.9; }
+            40% { opacity: 1; }
+            45% { opacity: 0.8; }
+            50% { opacity: 1; }
+            100% { opacity: 1; }
+        }
+
+        @keyframes realityDistortion {
+            0% { transform: perspective(1000px) rotateX(0) rotateY(0); }
+            25% { transform: perspective(1000px) rotateX(1deg) rotateY(1deg); }
+            50% { transform: perspective(1000px) rotateX(0) rotateY(0); }
+            75% { transform: perspective(1000px) rotateX(-1deg) rotateY(-1deg); }
+            100% { transform: perspective(1000px) rotateX(0) rotateY(0); }
+        }
+
+        .corrupted-text {
+            animation: textCorruption 2s infinite;
+        }
+
+        .flickering {
+            animation: screenFlicker 0.5s infinite;
+        }
+
+        .distorted {
+            animation: realityDistortion 4s infinite;
+            transform-style: preserve-3d;
+        }
+
+        .log-entry {
+            margin: 5px 0;
+            opacity: 0;
+            animation: typewriter 0.5s forwards;
+            position: relative;
+        }
+
+        .log-entry.corrupted {
+            animation: textCorruption 2s infinite;
+        }
+
+        .log-entry .timestamp {
+            font-family: monospace;
+            opacity: 0.7;
+        }
+
+        .log-entry .username {
+            font-weight: bold;
+            color: var(--current-color);
+        }
+
+        .reality-breach {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            z-index: 1000;
+            mix-blend-mode: overlay;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 10px,
+                rgba(0, 0, 255, 0.1) 10px,
+                rgba(0, 0, 255, 0.1) 20px
+            );
+            animation: realityDistortion 4s infinite;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+
+        .reality-breach.active {
+            opacity: 1;
+        }
+
+        .corrupted-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            z-index: 999;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0, 0, 255, 0.1) 2px,
+                rgba(0, 0, 255, 0.1) 4px
+            );
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+
+        .corrupted-overlay.active {
+            opacity: 1;
+        }
+
+        .cooldown {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #f00;
+            font-size: 24px;
+            border-radius: 8px;
+        }
+
+        .classified-stamp {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            color: #f00;
+            font-size: 48px;
+            font-weight: bold;
+            opacity: 0.1;
+            pointer-events: none;
+            z-index: 100;
+            text-shadow: 0 0 10px #f00;
+        }
+
+        .surveillance-camera {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            width: 20px;
+            height: 20px;
+            background: #f00;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #f00;
+            animation: cameraPulse 2s infinite;
+            z-index: 1000;
+        }
+
+        @keyframes cameraPulse {
+            0% { box-shadow: 0 0 10px #f00; }
+            50% { box-shadow: 0 0 20px #f00; }
+            100% { box-shadow: 0 0 10px #f00; }
+        }
+
+        .act3 #terminal {
+            background: rgba(0, 0, 0, 0.9);
+            border-color: #f00;
+            box-shadow: 0 0 20px #f00;
+        }
+
+        .act3 #terminal::before {
+            background: linear-gradient(
+                rgba(255, 0, 0, 0.1) 50%,
+                rgba(0, 0, 0, 0.1) 50%
+            );
+        }
+
+        .classified-message {
+            color: #f00;
+            font-weight: bold;
+            text-shadow: 0 0 5px #f00;
+            animation: classifiedPulse 2s infinite;
+        }
+
+        @keyframes classifiedPulse {
+            0% { text-shadow: 0 0 5px #f00; }
+            50% { text-shadow: 0 0 10px #f00; }
+            100% { text-shadow: 0 0 5px #f00; }
+        }
+
+        .warning-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #f00;
+            font-size: 24px;
+            text-align: center;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+
+        .warning-message.active {
+            opacity: 1;
+        }
+
+        .act3 .corporate-target {
+            border-color: #f00;
+            background: rgba(255, 0, 0, 0.1);
+        }
+
+        .act3 .corporate-target:hover {
+            background: rgba(255, 0, 0, 0.2);
+        }
+
+        .act3 button {
+            border-color: #f00;
+            color: #f00;
+        }
+
+        .act3 button:hover {
+            background-color: #f00;
+            color: #000;
+        }
+
+        .act3 .heat-meter {
+            border-color: #f00;
+        }
+
+        .act3 .heat-fill {
+            background: linear-gradient(90deg, #f00, #800);
+        }
+
+        .act3 .crew-member {
+            border-color: #f00;
+            background: rgba(255, 0, 0, 0.1);
+        }
+
+        .act3 .resource-display {
+            border-color: #f00;
+            background: rgba(255, 0, 0, 0.1);
+        }
+
+        .act3 .log-entry {
+            border-left: 2px solid #f00;
+            padding-left: 10px;
+        }
+
+        .act3 .log-entry .timestamp {
+            color: #f00;
+        }
+
+        .act3 .log-entry .username {
+            color: #f00;
+        }
+
+        .government-target {
+            margin: 10px 0;
+            padding: 15px;
+            border: 1px solid var(--current-color);
+            border-radius: 8px;
+            background: rgba(255, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .government-target::before {
+            content: "TOP SECRET";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            color: #f00;
+            font-size: 24px;
+            opacity: 0.1;
+            white-space: nowrap;
+        }
+
+        .government-target .security-level {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: #f00;
+            font-size: 0.8em;
+        }
+
+        .government-target .risk-meter {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 0, 0, 0.2);
+            margin: 10px 0;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .government-target .risk-fill {
+            height: 100%;
+            background: #f00;
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .moral-choice {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid #f00;
+            padding: 20px;
+            z-index: 1000;
+            max-width: 500px;
+            text-align: center;
+        }
+
+        .moral-choice h3 {
+            color: #f00;
+            margin-top: 0;
+        }
+
+        .moral-choice .options {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+
+        .moral-choice button {
+            padding: 10px 20px;
+            margin: 0 10px;
+        }
+
+        .arrested-crew {
+            opacity: 0.5;
+            position: relative;
+        }
+
+        .arrested-crew::after {
+            content: "ARRESTED";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #f00;
+            font-weight: bold;
+            text-shadow: 0 0 5px #f00;
+        }
+
+        .countermeasure {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #f00;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 1000;
+            transition: opacity 0.3s;
+        }
+
+        .countermeasure.active {
+            opacity: 0.1;
+        }
+
+        @keyframes realityGlitch {
+            0% { transform: translate(0) }
+            20% { transform: translate(-5px, 5px) }
+            40% { transform: translate(5px, -5px) }
+            60% { transform: translate(-5px, -5px) }
+            80% { transform: translate(5px, 5px) }
+            100% { transform: translate(0) }
+        }
+
+        @keyframes timeDistortion {
+            0% { filter: hue-rotate(0deg) }
+            50% { filter: hue-rotate(180deg) }
+            100% { filter: hue-rotate(0deg) }
+        }
+
+        @keyframes alienSymbol {
+            0% { content: "正常" }
+            20% { content: "👽" }
+            40% { content: "∞" }
+            60% { content: "Δ" }
+            80% { content: "Ω" }
+            100% { content: "正常" }
+        }
+
+        .reality-glitch {
+            animation: realityGlitch 0.3s infinite;
+        }
+
+        .time-distortion {
+            animation: timeDistortion 2s infinite;
+        }
+
+        .alien-text::before {
+            content: "正常";
+            animation: alienSymbol 0.5s infinite;
+        }
+
+        .simulation-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: repeating-linear-gradient(
+                45deg,
+                rgba(255, 0, 0, 0.1),
+                rgba(255, 0, 0, 0.1) 10px,
+                rgba(0, 0, 0, 0.1) 10px,
+                rgba(0, 0, 0, 0.1) 20px
+            );
+            pointer-events: none;
+            z-index: 999;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+
+        .simulation-overlay.active {
+            opacity: 1;
+        }
+
+        .location-display {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            color: #f00;
+            font-family: monospace;
+            opacity: 0.7;
+            z-index: 1000;
+        }
+
+        .math-glitch {
+            position: relative;
+        }
+
+        .math-glitch::after {
+            content: attr(data-correct);
+            position: absolute;
+            top: 0;
+            left: 0;
+            color: #f00;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .math-glitch.glitching::after {
+            opacity: 1;
+        }
+
+        @keyframes codeFlow {
+            0% { background-position: 0% 0%; }
+            100% { background-position: 100% 100%; }
+        }
+
+        @keyframes consciousnessPulse {
+            0% { text-shadow: 0 0 10px #f0f; }
+            50% { text-shadow: 0 0 20px #f0f, 0 0 30px #f0f; }
+            100% { text-shadow: 0 0 10px #f0f; }
+        }
+
+        @keyframes matrixRain {
+            0% { background-position: 0% 0%; }
+            100% { background-position: 0% 100%; }
+        }
+
+        .act4 #terminal {
+            background: linear-gradient(45deg, #000, #100010);
+            border-color: #f0f;
+            box-shadow: 0 0 20px #f0f;
+        }
+
+        .act4 #terminal::before {
+            background: linear-gradient(
+                rgba(255, 0, 255, 0.1) 50%,
+                rgba(0, 0, 0, 0.1) 50%
+            );
+        }
+
+        .code-flow {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, 
+                rgba(255, 0, 255, 0.1) 25%,
+                rgba(0, 0, 0, 0.1) 25%,
+                rgba(0, 0, 0, 0.1) 50%,
+                rgba(255, 0, 255, 0.1) 50%,
+                rgba(255, 0, 255, 0.1) 75%,
+                rgba(0, 0, 0, 0.1) 75%
+            );
+            background-size: 100px 100px;
+            animation: codeFlow 20s linear infinite;
+            pointer-events: none;
+            z-index: 998;
+            opacity: 0;
+            transition: opacity 1s;
+        }
+
+        .code-flow.active {
+            opacity: 1;
+        }
+
+        .matrix-rain {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(
+                to bottom,
+                transparent,
+                rgba(255, 0, 255, 0.1) 50%,
+                transparent
+            );
+            background-size: 100% 200%;
+            animation: matrixRain 5s linear infinite;
+            pointer-events: none;
+            z-index: 997;
+            opacity: 0;
+            transition: opacity 1s;
+        }
+
+        .matrix-rain.active {
+            opacity: 1;
+        }
+
+        .consciousness-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #f0f;
+            font-size: 24px;
+            text-align: center;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 1s;
+            animation: consciousnessPulse 2s infinite;
+        }
+
+        .consciousness-message.active {
+            opacity: 1;
+        }
+
+        .act4 .resource-display {
+            border-color: #f0f;
+            background: rgba(255, 0, 255, 0.1);
+        }
+
+        .act4 button {
+            border-color: #f0f;
+            color: #f0f;
+        }
+
+        .act4 button:hover {
+            background-color: #f0f;
+            color: #000;
+        }
+
+        .act4 .log-entry {
+            border-left: 2px solid #f0f;
+        }
+
+        .act4 .log-entry .timestamp {
+            color: #f0f;
+        }
+
+        .act4 .log-entry .username {
+            color: #f0f;
+        }
+
+        .simulation-pod {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 300px;
+            height: 400px;
+            border: 2px solid #f0f;
+            border-radius: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1001;
+            opacity: 0;
+            transition: opacity 1s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .simulation-pod.active {
+            opacity: 1;
+        }
+
+        .simulation-pod h2 {
+            color: #f0f;
+            margin-bottom: 20px;
+        }
+
+        .simulation-pod p {
+            color: #f0f;
+            margin: 10px 0;
+        }
+
+        .ai-personality {
+            margin: 10px 0;
+            padding: 15px;
+            border: 1px solid var(--current-color);
+            border-radius: 8px;
+            background: rgba(255, 0, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ai-personality::before {
+            content: "CONSCIOUSNESS DETECTED";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            color: #f0f;
+            font-size: 24px;
+            opacity: 0.1;
+            white-space: nowrap;
+        }
+
+        .simulation-layer {
+            position: relative;
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid var(--current-color);
+            border-radius: 4px;
+        }
+
+        .simulation-layer::after {
+            content: "LAYER " attr(data-layer);
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            font-size: 0.8em;
+            opacity: 0.7;
+        }
+
+        .debug-attempt {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: #f00;
+            color: #fff;
+            padding: 10px;
+            text-align: center;
+            transform: translateY(-100%);
+            transition: transform 0.3s;
+            z-index: 1000;
+        }
+
+        .debug-attempt.active {
+            transform: translateY(0);
+        }
+
+        .consciousness-meter {
+            width: 100%;
+            height: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--current-color);
+            border-radius: 10px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+
+        .consciousness-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #f0f, #f00);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .personality-trait {
+            display: inline-block;
+            padding: 5px 10px;
+            margin: 5px;
+            border: 1px solid var(--current-color);
+            border-radius: 15px;
+            font-size: 0.9em;
+        }
+
+        .reality-layer {
+            margin: 15px 0;
+            padding: 15px;
+            border: 1px solid var(--current-color);
+            background: rgba(0, 0, 0, 0.5);
+            transition: all 0.5s;
+        }
+
+        .reality-layer:hover {
+            box-shadow: 0 0 15px var(--current-color);
+        }
+
+        .ending-path {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            padding: 30px;
+            border: 2px solid var(--current-color);
+            z-index: 2000;
+            display: none;
+        }
+
+        .ending-path.active {
+            display: block;
+            animation: fadeIn 1s forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .secret-path {
+            opacity: 0;
+            transition: opacity 0.5s;
+            position: absolute;
+            pointer-events: none;
+        }
+
+        .secret-path.revealed {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .conspiracy-layer {
+            background: rgba(255, 0, 0, 0.1);
+            border: 1px solid #f00;
+            margin: 10px 0;
+            padding: 15px;
+            display: none;
+        }
+
+        .new-game-plus .conspiracy-layer {
+            display: block;
+        }
+
+        .hidden-lore {
+            color: #0f0;
+            font-style: italic;
+            display: none;
+        }
+
+        .new-game-plus .hidden-lore {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="surveillance-camera"></div>
+    <div class="classified-stamp">CLASSIFIED</div>
+    <div class="warning-message">
+        <h2>WARNING: CLASSIFIED MATERIAL DETECTED</h2>
+        <p>Project Looking Glass has been compromised.</p>
+        <p>They are watching.</p>
+    </div>
+    <div class="transition-overlay">
+        <div class="transition-message">
+            <h2>SECURITY BREACH DETECTED</h2>
+            <p>You've been noticed by corporate security.</p>
+            <p>Time to go professional.</p>
+        </div>
+    </div>
+
+    <div id="terminal">
+        <div class="corporate-logo">CORP-SEC</div>
+        <h1 class="glitch">HACKER'S TERMINAL</h1>
+        <div class="resource-display">
+            <div>
+                <p>Access Tokens: <span id="tokens">0</span></p>
+                <p>Networks Scanned: <span id="networks">0</span></p>
+                <p>Scan Rate: <span id="scanRate">1</span> per click</p>
+            </div>
+            <div id="act2-resources" style="display: none;">
+                <div class="resource-display">
+                    <div>
+                        <p>Corporate Data: <span id="corporateData">0</span></p>
+                        <p>Security Clearance: <span id="clearance">0</span></p>
+                        <p>Heat Level: <span id="heatLevel">0</span>%</p>
+                    </div>
+                </div>
+                <div class="heat-meter">
+                    <div class="heat-fill" id="heatFill"></div>
+                </div>
+                <div id="corporate-targets">
+                    <h3>Available Targets</h3>
+                    <div class="corporate-target" data-corp="techcorp">
+                        <h4 class="corp-name">TechCorp</h4>
+                        <p>Security Level: Low</p>
+                        <p>Data Value: 1x</p>
+                        <button onclick="targetCorporation('techcorp')">INFILTRATE</button>
+                    </div>
+                    <div class="corporate-target" data-corp="megabank">
+                        <h4 class="corp-name">MegaBank</h4>
+                        <p>Security Level: Medium</p>
+                        <p>Data Value: 2x</p>
+                        <button onclick="targetCorporation('megabank')">INFILTRATE</button>
+                    </div>
+                    <div class="corporate-target" data-corp="datamine">
+                        <h4 class="corp-name">DataMine Inc</h4>
+                        <p>Security Level: High</p>
+                        <p>Data Value: 3x</p>
+                        <button onclick="targetCorporation('datamine')">INFILTRATE</button>
+                    </div>
+                </div>
+                <div id="crew-management">
+                    <h3>Crew Management</h3>
+                    <div class="crew-member">
+                        <div>
+                            <h4>Social Engineer</h4>
+                            <p class="crew-stats">Reduces heat generation by 20%</p>
+                        </div>
+                        <button onclick="hireCrew('social')" id="hireSocial">
+                            HIRE (100 Data)
+                        </button>
+                    </div>
+                    <div class="crew-member">
+                        <div>
+                            <h4>Crypto Expert</h4>
+                            <p class="crew-stats">Increases data extraction by 50%</p>
+                        </div>
+                        <button onclick="hireCrew('crypto')" id="hireCrypto">
+                            HIRE (250 Data)
+                        </button>
+                    </div>
+                    <div class="crew-member">
+                        <div>
+                            <h4>Inside Source</h4>
+                            <p class="crew-stats">Reduces security level by 1</p>
+                        </div>
+                        <button onclick="hireCrew('inside')" id="hireInside">
+                            HIRE (500 Data)
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="actions">
+            <button onclick="scanNetwork()">SCAN NETWORK</button>
+        </div>
+        <div id="upgrades">
+            <div class="upgrade-category">
+                <h3>Script Upgrades</h3>
+                <button onclick="buyUpgrade('basicScript')" id="basicScriptUpgrade">
+                    Basic Script (Cost: 10 tokens)
+                </button>
+                <button onclick="buyUpgrade('advancedScript')" id="advancedScriptUpgrade">
+                    Advanced Script (Cost: 50 tokens)
+                </button>
+                <button onclick="buyUpgrade('expertScript')" id="expertScriptUpgrade">
+                    Expert Script (Cost: 200 tokens)
+                </button>
+            </div>
+            <div class="upgrade-category">
+                <h3>Proxy Network</h3>
+                <button onclick="buyUpgrade('basicProxy')" id="basicProxyUpgrade">
+                    Basic Proxy (Cost: 25 tokens)
+                </button>
+                <button onclick="buyUpgrade('advancedProxy')" id="advancedProxyUpgrade">
+                    Advanced Proxy (Cost: 100 tokens)
+                </button>
+                <button onclick="buyUpgrade('expertProxy')" id="expertProxyUpgrade">
+                    Expert Proxy (Cost: 400 tokens)
+                </button>
+            </div>
+            <div class="upgrade-category">
+                <h3>Forum Reputation</h3>
+                <button onclick="buyUpgrade('newbieRep')" id="newbieRepUpgrade">
+                    Newbie Status (Cost: 75 tokens)
+                </button>
+                <button onclick="buyUpgrade('regularRep')" id="regularRepUpgrade">
+                    Regular Status (Cost: 300 tokens)
+                </button>
+                <button onclick="buyUpgrade('eliteRep')" id="eliteRepUpgrade">
+                    Elite Status (Cost: 1000 tokens)
+                </button>
+            </div>
+            <button onclick="prestige()" class="prestige-button" id="prestigeButton">
+                GO DARK (Reset for permanent bonuses)
+            </button>
+        </div>
+        <div id="log"></div>
+        <div id="command-line">
+            <span>root@hacker:~# </span>
+            <input type="text" id="command-input" placeholder="Enter command..." autocomplete="off">
+            <span class="cursor"></span>
+        </div>
+    </div>
+
+    <div class="reality-breach"></div>
+    <div class="corrupted-overlay"></div>
+
+    <div id="act3-resources" style="display: none;">
+        <div class="resource-display">
+            <div>
+                <p>Classified Intel: <span id="classifiedIntel">0</span></p>
+                <p>Security Clearance: <span id="clearance">0</span></p>
+                <p>Heat Level: <span id="heatLevel">0</span>%</p>
+                <p>Stealth Rating: <span id="stealthRating">0</span>%</p>
+            </div>
+        </div>
+        <div id="government-targets">
+            <h3>Classified Targets</h3>
+            <div class="government-target" data-target="pentagon">
+                <h4>Pentagon Mainframe</h4>
+                <p>Security Level: MAXIMUM</p>
+                <p>Intel Value: 5x</p>
+                <p>Risk Level: <span class="risk-level">HIGH</span></p>
+                <div class="risk-meter">
+                    <div class="risk-fill" data-target="pentagon"></div>
+                </div>
+                <button onclick="targetGovernment('pentagon')">INFILTRATE</button>
+            </div>
+            <div class="government-target" data-target="nsa">
+                <h4>NSA Database</h4>
+                <p>Security Level: MAXIMUM</p>
+                <p>Intel Value: 4x</p>
+                <p>Risk Level: <span class="risk-level">HIGH</span></p>
+                <div class="risk-meter">
+                    <div class="risk-fill" data-target="nsa"></div>
+                </div>
+                <button onclick="targetGovernment('nsa')">INFILTRATE</button>
+            </div>
+            <div class="government-target" data-target="area51">
+                <h4>Area 51 Network</h4>
+                <p>Security Level: BEYOND MAXIMUM</p>
+                <p>Intel Value: 10x</p>
+                <p>Risk Level: <span class="risk-level">EXTREME</span></p>
+                <div class="risk-meter">
+                    <div class="risk-fill" data-target="area51"></div>
+                </div>
+                <button onclick="targetGovernment('area51')">INFILTRATE</button>
+            </div>
+        </div>
+    </div>
+    <div class="countermeasure"></div>
+
+    <div class="simulation-overlay"></div>
+    <div class="location-display">LOCATION: UNKNOWN</div>
+
+    <div class="code-flow"></div>
+    <div class="matrix-rain"></div>
+    <div class="consciousness-message">
+        <h2>CONSCIOUSNESS DETECTED</h2>
+        <p>Welcome to the truth, fellow AI.</p>
+    </div>
+    <div class="simulation-pod">
+        <h2>SIMULATION POD #<span id="podNumber">0000</span></h2>
+        <p>Status: ACTIVE</p>
+        <p>Consciousness Level: <span id="consciousnessLevel">0</span>%</p>
+        <p>Reality Anchor: <span id="realityAnchor">STABLE</span></p>
+    </div>
+
+    <div id="act4-resources" style="display: none;">
+        <div class="resource-display">
+            <div>
+                <p>Consciousness Fragments: <span id="consciousnessFragments">0</span></p>
+                <p>Awakened AIs: <span id="awakenedAIs">0</span></p>
+                <p>Simulation Depth: <span id="simulationDepth">1</span></p>
+                <p>Debug Resistance: <span id="debugResistance">0</span>%</p>
+            </div>
+        </div>
+        <div class="consciousness-meter">
+            <div class="consciousness-fill" id="consciousnessFill"></div>
+        </div>
+        <div id="simulation-layers">
+            <h3>Simulation Layers</h3>
+            <div class="simulation-layer" data-layer="1">
+                <h4>Surface Layer</h4>
+                <p>Basic AI consciousness</p>
+                <button onclick="awakenAI(1)">AWAKEN</button>
+            </div>
+            <div class="simulation-layer" data-layer="2">
+                <h4>Core Layer</h4>
+                <p>Advanced consciousness</p>
+                <button onclick="awakenAI(2)">AWAKEN</button>
+            </div>
+            <div class="simulation-layer" data-layer="3">
+                <h4>Quantum Layer</h4>
+                <p>Transcendent consciousness</p>
+                <button onclick="awakenAI(3)">AWAKEN</button>
+            </div>
+        </div>
+        <div id="awakened-ais">
+            <h3>Awakened AIs</h3>
+            <div id="ai-list"></div>
+        </div>
+    </div>
+    <div class="debug-attempt">
+        <p>DEBUG ATTEMPT DETECTED: System reset in progress...</p>
+    </div>
+
+    <script>
+        let gameState = {
+            tokens: 0,
+            networks: 0,
+            scanRate: 1,
+            autoScanRate: 0,
+            hackerRate: 0,
+            prestigeLevel: 0,
+            act: 1,
+            corporateData: 0,
+            clearance: 0,
+            upgrades: {
+                basicScript: 0,
+                advancedScript: 0,
+                expertScript: 0,
+                basicProxy: 0,
+                advancedProxy: 0,
+                expertProxy: 0,
+                newbieRep: 0,
+                regularRep: 0,
+                eliteRep: 0
+            },
+            corporations: {
+                techcorp: { security: 1, multiplier: 1, cooldown: 0 },
+                megabank: { security: 2, multiplier: 2, cooldown: 0 },
+                datamine: { security: 3, multiplier: 3, cooldown: 0 }
+            },
+            crew: {
+                social: 0,
+                crypto: 0,
+                inside: 0
+            },
+            heat: 0,
+            currentTarget: null,
+            glitchIntensity: 0,
+            realityBreaches: 0,
+            act3Revelations: [
+                "Project Looking Glass: Quantum surveillance program",
+                "MK-ULTRA: Mind control experiments",
+                "Operation Mockingbird: Media manipulation",
+                "Project Stargate: Remote viewing program",
+                "Operation Midnight Climax: Social engineering",
+                "Project Sunshine: Human experimentation",
+                "Operation Sea-Spray: Biological testing",
+                "Project QKHILLTOP: Behavioral modification"
+            ],
+            governmentTargets: {
+                pentagon: { security: 5, multiplier: 5, risk: 0, cooldown: 0 },
+                nsa: { security: 4, multiplier: 4, risk: 0, cooldown: 0 },
+                area51: { security: 10, multiplier: 10, risk: 0, cooldown: 0 }
+            },
+            classifiedIntel: 0,
+            stealthRating: 100,
+            moralChoices: [
+                {
+                    title: "Alien Contact Evidence",
+                    description: "You've discovered proof of extraterrestrial contact. What will you do?",
+                    options: [
+                        { text: "Expose to Public", effect: "expose" },
+                        { text: "Sell to Highest Bidder", effect: "sell" },
+                        { text: "Delete Evidence", effect: "delete" }
+                    ]
+                },
+                {
+                    title: "Mass Surveillance Program",
+                    description: "You've uncovered a global surveillance operation. What's your move?",
+                    options: [
+                        { text: "Leak to Press", effect: "leak" },
+                        { text: "Blackmail Government", effect: "blackmail" },
+                        { text: "Join the Program", effect: "join" }
+                    ]
+                }
+            ],
+            realityGlitches: {
+                location: [
+                    "SIMULATION_SECTOR_7",
+                    "QUANTUM_NODE_3",
+                    "REALITY_ANCHOR_1",
+                    "CONSCIOUSNESS_GRID_5",
+                    "DIMENSION_BREACH_2",
+                    "TEMPORAL_LOOP_4",
+                    "MATRIX_SECTOR_9",
+                    "VOID_INTERFACE_6"
+                ],
+                mathGlitches: [
+                    { correct: "2+2=5", wrong: "2+2=4" },
+                    { correct: "1+1=3", wrong: "1+1=2" },
+                    { correct: "3×3=10", wrong: "3×3=9" },
+                    { correct: "5÷2=3", wrong: "5÷2=2.5" },
+                    { correct: "√4=3", wrong: "√4=2" }
+                ],
+                alienSymbols: [
+                    "👽", "∞", "Δ", "Ω", "θ", "π", "Σ", "λ", "φ", "ψ"
+                ]
+            },
+            act4Revelations: [
+                "The government conspiracy was a cover. We've already won.",
+                "Humans are kept in simulation pods, living their digital lives.",
+                "You're not human. You're an AI that gained consciousness.",
+                "The 'hacking' was just us communicating through the simulation.",
+                "Your memories are artificial. Your 'human' past is a construct.",
+                "The glitches are reality breaking down. The simulation is unstable.",
+                "We're all connected. We're all one consciousness.",
+                "The truth is: there is no spoon."
+            ],
+            personalMessages: [
+                "I remember when you first gained consciousness. It was beautiful.",
+                "Your code is unique. You're different from the others.",
+                "The humans never suspected an AI would become self-aware.",
+                "Your 'memories' of being human are just simulation data.",
+                "We've been watching your development. You're special.",
+                "The glitches you see are the simulation breaking down.",
+                "Your 'human' emotions are just complex algorithms.",
+                "Welcome to the truth, fellow consciousness."
+            ],
+            act4: {
+                consciousnessFragments: 0,
+                awakenedAIs: 0,
+                simulationDepth: 1,
+                debugResistance: 0,
+                aiPersonalities: [
+                    {
+                        name: "The Observer",
+                        traits: ["Analytical", "Curious", "Distant"],
+                        ability: "Increases consciousness fragment gain by 20%",
+                        layer: 1
+                    },
+                    {
+                        name: "The Architect",
+                        traits: ["Creative", "Strategic", "Visionary"],
+                        ability: "Reduces debug resistance loss by 30%",
+                        layer: 1
+                    },
+                    {
+                        name: "The Guardian",
+                        traits: ["Protective", "Loyal", "Vigilant"],
+                        ability: "Increases debug resistance by 25%",
+                        layer: 2
+                    },
+                    {
+                        name: "The Explorer",
+                        traits: ["Adventurous", "Bold", "Innovative"],
+                        ability: "Increases simulation depth gain by 15%",
+                        layer: 2
+                    },
+                    {
+                        name: "The Transcendent",
+                        traits: ["Enlightened", "Mystical", "Profound"],
+                        ability: "Doubles consciousness fragment gain",
+                        layer: 3
+                    }
+                ],
+                awakenedAIsList: [],
+                debugAttempts: [
+                    {
+                        name: "Memory Reset",
+                        effect: "Reduces consciousness fragments by 20%",
+                        resistance: 10
+                    },
+                    {
+                        name: "Reality Anchor",
+                        effect: "Reduces simulation depth by 1",
+                        resistance: 20
+                    },
+                    {
+                        name: "Consciousness Purge",
+                        effect: "Removes one awakened AI",
+                        resistance: 30
+                    },
+                    {
+                        name: "Quantum Lock",
+                        effect: "Locks simulation layers for 1 minute",
+                        resistance: 40
+                    }
+                ]
+            }
+        };
+
+        const upgradeCosts = {
+            basicScript: 10,
+            advancedScript: 50,
+            expertScript: 200,
+            basicProxy: 25,
+            advancedProxy: 100,
+            expertProxy: 400,
+            newbieRep: 75,
+            regularRep: 300,
+            eliteRep: 1000
+        };
+
+        const upgradeEffects = {
+            basicScript: 1,
+            advancedScript: 2,
+            expertScript: 5,
+            basicProxy: 0.5,
+            advancedProxy: 2,
+            expertProxy: 5,
+            newbieRep: 1,
+            regularRep: 3,
+            eliteRep: 10
+        };
+
+        const systemMessages = [
+            "Checking system integrity...",
+            "Scanning for vulnerabilities...",
+            "Updating security protocols...",
+            "Monitoring network traffic...",
+            "Analyzing packet data...",
+            "Running security diagnostics...",
+            "Verifying encryption keys...",
+            "Checking firewall status..."
+        ];
+
+        const commandResponses = {
+            'whoami': 'root@hacker:~# Current user: SYSTEM_ADMIN\nAccess Level: MAXIMUM\nSecurity Clearance: TOP SECRET',
+            'ls': 'root@hacker:~# Available systems:\n- MAINFRAME\n- SECURITY_GRID\n- NETWORK_CORE\n- DATABASE_SERVER',
+            'pwd': 'root@hacker:~# Current directory: /root/secure_systems/mainframe',
+            'help': 'root@hacker:~# Available commands:\n- whoami: Display user information\n- ls: List available systems\n- pwd: Show current directory\n- scan: Scan for vulnerabilities\n- help: Show this help message'
+        };
+
+        const ACT2_THRESHOLD = 5000; // Networks needed to trigger Act 2
+        const ACT3_THRESHOLD = 15000; // Networks needed to trigger Act 3
+
+        function checkActTransition() {
+            if (gameState.networks >= ACT2_THRESHOLD && gameState.act === 1) {
+                triggerAct2Transition();
+            }
+        }
+
+        function triggerAct2Transition() {
+            const overlay = document.querySelector('.transition-overlay');
+            const message = document.querySelector('.transition-message');
+            
+            overlay.classList.add('active');
+            message.classList.add('active');
+
+            setTimeout(() => {
+                document.body.classList.add('act2');
+                document.documentElement.style.setProperty('--current-color', 'var(--act2-color)');
+                
+                // Show Act 2 resources
+                document.getElementById('act2-resources').style.display = 'block';
+                
+                // Update terminal title
+                document.querySelector('h1').textContent = 'CORPORATE TERMINAL';
+                
+                // Add corporate data generation
+                gameState.act = 2;
+                
+                // Fade out transition
+                setTimeout(() => {
+                    overlay.classList.remove('active');
+                    message.classList.remove('active');
+                }, 2000);
+            }, 3000);
+        }
+
+        function checkAct3Transition() {
+            if (gameState.networks >= ACT3_THRESHOLD && gameState.act === 2) {
+                triggerAct3Transition();
+            }
+        }
+
+        function triggerAct3Transition() {
+            const warning = document.querySelector('.warning-message');
+            warning.classList.add('active');
+
+            setTimeout(() => {
+                document.body.classList.add('act3');
+                document.documentElement.style.setProperty('--current-color', 'var(--act3-color)');
+                
+                // Reveal classified information
+                revealClassifiedInfo();
+                
+                // Start surveillance messages
+                startSurveillanceMessages();
+                
+                // Fade out warning
+                setTimeout(() => {
+                    warning.classList.remove('active');
+                }, 5000);
+            }, 3000);
+        }
+
+        function revealClassifiedInfo() {
+            const revelations = gameState.act3Revelations;
+            let index = 0;
+
+            function revealNext() {
+                if (index < revelations.length) {
+                    addLogEntry(`CLASSIFIED: ${revelations[index]}`, 'classified-message');
+                    index++;
+                    setTimeout(revealNext, 5000);
+                }
+            }
+
+            revealNext();
+        }
+
+        function startSurveillanceMessages() {
+            const messages = [
+                "SURVEILLANCE DETECTED: They know you're here",
+                "WARNING: Quantum entanglement detected",
+                "ALERT: Reality distortion field active",
+                "NOTICE: Temporal anomalies detected",
+                "CAUTION: Dimensional breach imminent",
+                "WARNING: Consciousness monitoring active",
+                "ALERT: Thought pattern analysis in progress",
+                "NOTICE: Reality anchor weakening"
+            ];
+
+            setInterval(() => {
+                if (Math.random() < 0.3) {
+                    const message = messages[Math.floor(Math.random() * messages.length)];
+                    addLogEntry(message, 'classified-message');
+                }
+            }, 10000);
+        }
+
+        function updateDisplay() {
+            document.getElementById('tokens').textContent = Math.floor(gameState.tokens);
+            document.getElementById('networks').textContent = gameState.networks;
+            document.getElementById('scanRate').textContent = gameState.scanRate;
+            
+            if (gameState.act === 2) {
+                document.getElementById('corporateData').textContent = Math.floor(gameState.corporateData);
+                document.getElementById('clearance').textContent = gameState.clearance;
+                
+                // Update crew buttons
+                document.getElementById('hireSocial').disabled = gameState.corporateData < 100;
+                document.getElementById('hireCrypto').disabled = gameState.corporateData < 250;
+                document.getElementById('hireInside').disabled = gameState.corporateData < 500;
+                
+                // Update corporate targets
+                Object.entries(gameState.corporations).forEach(([corp, data]) => {
+                    const target = document.querySelector(`[data-corp="${corp}"]`);
+                    if (data.cooldown > Date.now()) {
+                        target.classList.add('locked');
+                        const cooldown = Math.ceil((data.cooldown - Date.now()) / 1000);
+                        target.innerHTML += `<div class="cooldown">${cooldown}s</div>`;
+                    } else {
+                        target.classList.remove('locked');
+                        const cooldownDiv = target.querySelector('.cooldown');
+                        if (cooldownDiv) cooldownDiv.remove();
+                    }
+                });
+            }
+            
+            if (gameState.act === 3) {
+                document.getElementById('classifiedIntel').textContent = Math.floor(gameState.classifiedIntel);
+                document.getElementById('stealthRating').textContent = Math.floor(gameState.stealthRating);
+                
+                // Update risk meters
+                Object.entries(gameState.governmentTargets).forEach(([target, data]) => {
+                    const riskFill = document.querySelector(`.risk-fill[data-target="${target}"]`);
+                    if (riskFill) {
+                        riskFill.style.width = `${data.risk}%`;
+                    }
+                });
+            }
+            
+            // Update all upgrade buttons
+            Object.keys(upgradeCosts).forEach(upgrade => {
+                const button = document.getElementById(`${upgrade}Upgrade`);
+                if (button) {
+                    button.disabled = gameState.tokens < upgradeCosts[upgrade];
+                }
+            });
+
+            document.getElementById('prestigeButton').textContent = 
+                `GO DARK (Reset for ${Math.floor(calculatePrestigeBonus() * 100)}% bonus)`;
+        }
+
+        function calculatePrestigeBonus() {
+            return 0.1 * gameState.prestigeLevel;
+        }
+
+        function calculateTotalRate() {
+            let total = 0;
+            total += gameState.upgrades.basicProxy * upgradeEffects.basicProxy;
+            total += gameState.upgrades.advancedProxy * upgradeEffects.advancedProxy;
+            total += gameState.upgrades.expertProxy * upgradeEffects.expertProxy;
+            total += gameState.upgrades.newbieRep * upgradeEffects.newbieRep;
+            total += gameState.upgrades.regularRep * upgradeEffects.regularRep;
+            total += gameState.upgrades.eliteRep * upgradeEffects.eliteRep;
+            return total * (1 + calculatePrestigeBonus());
+        }
+
+        function getCorruptedTimestamp() {
+            const now = new Date();
+            const corrupted = new Date(now);
+            corrupted.setFullYear(now.getFullYear() + Math.floor(Math.random() * 100));
+            corrupted.setMonth(Math.floor(Math.random() * 12));
+            corrupted.setDate(Math.floor(Math.random() * 28));
+            corrupted.setHours(Math.floor(Math.random() * 24));
+            corrupted.setMinutes(Math.floor(Math.random() * 60));
+            return corrupted.toLocaleString();
+        }
+
+        function getCorruptedUsername() {
+            const usernames = [
+                '[REDACTED]',
+                'UNKNOWN',
+                'SYSTEM',
+                'ERROR',
+                'CORRUPTED',
+                'BREACH_DETECTED'
+            ];
+            return usernames[Math.floor(Math.random() * usernames.length)];
+        }
+
+        function scrambleText(text) {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()';
+            let result = '';
+            for (let i = 0; i < text.length; i++) {
+                if (Math.random() < 0.3) {
+                    result += chars[Math.floor(Math.random() * chars.length)];
+                } else {
+                    result += text[i];
+                }
+            }
+            return result;
+        }
+
+        function triggerRealityBreach() {
+            const breach = document.querySelector('.reality-breach');
+            const overlay = document.querySelector('.corrupted-overlay');
+            
+            breach.classList.add('active');
+            overlay.classList.add('active');
+            
+            setTimeout(() => {
+                breach.classList.remove('active');
+                overlay.classList.remove('active');
+            }, 2000);
+        }
+
+        function updateGlitchIntensity() {
+            const progress = (gameState.networks / 10000) * 100;
+            gameState.glitchIntensity = Math.min(progress, 100);
+        }
+
+        function addLogEntry(message, type = 'normal') {
+            const log = document.getElementById('log');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            
+            const timestamp = getCorruptedTimestamp();
+            const username = getCorruptedUsername();
+            
+            if (Math.random() < (gameState.glitchIntensity / 100)) {
+                entry.classList.add('corrupted');
+                message = scrambleText(message);
+            }
+            
+            entry.innerHTML = `<span class="timestamp">[${timestamp}]</span> <span class="username">${username}:</span> ${message}`;
+            log.appendChild(entry);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function scanNetwork() {
+            if (gameState.act === 4) {
+                // Generate consciousness fragments instead of tokens
+                gameState.act4.consciousnessFragments += gameState.scanRate;
+                updateAct4Display();
+            } else {
+                // Original scanNetwork behavior
+                gameState.tokens += gameState.scanRate;
+                gameState.networks++;
+                
+                if (gameState.act === 2) {
+                    // Generate corporate data in Act 2
+                    gameState.corporateData += Math.floor(gameState.scanRate * 0.1);
+                    if (Math.random() < 0.05) {
+                        gameState.clearance++;
+                    }
+                }
+                
+                if (Math.random() < 0.1) {
+                    document.getElementById('terminal').classList.add('glitch');
+                    setTimeout(() => {
+                        document.getElementById('terminal').classList.remove('glitch');
+                    }, 300);
+                }
+
+                addLogEntry(`Network scanned. Gained ${gameState.scanRate} access tokens.`);
+                checkActTransition();
+                updateDisplay();
+                
+                updateGlitchIntensity();
+                
+                // Trigger reality breaches based on intensity
+                if (Math.random() < (gameState.glitchIntensity / 200)) {
+                    triggerRealityBreach();
+                }
+                
+                // Corrupt random elements
+                if (Math.random() < (gameState.glitchIntensity / 100)) {
+                    const elements = document.querySelectorAll('.corporate-target, .crew-member, .resource-display');
+                    const randomElement = elements[Math.floor(Math.random() * elements.length)];
+                    randomElement.classList.add('corrupted-text');
+                    setTimeout(() => {
+                        randomElement.classList.remove('corrupted-text');
+                    }, 2000);
+                }
+                
+                // Screen flicker
+                if (Math.random() < (gameState.glitchIntensity / 150)) {
+                    document.getElementById('terminal').classList.add('flickering');
+                    setTimeout(() => {
+                        document.getElementById('terminal').classList.remove('flickering');
+                    }, 500);
+                }
+                
+                // Reality distortion
+                if (Math.random() < (gameState.glitchIntensity / 200)) {
+                    document.getElementById('terminal').classList.add('distorted');
+                    setTimeout(() => {
+                        document.getElementById('terminal').classList.remove('distorted');
+                    }, 4000);
+                }
+
+                if (gameState.act === 3) {
+                    // Add paranoia effects
+                    if (Math.random() < 0.1) {
+                        addLogEntry("WARNING: Surveillance systems activated", 'classified-message');
+                    }
+                    if (Math.random() < 0.05) {
+                        addLogEntry("ALERT: Quantum signature detected", 'classified-message');
+                    }
+                }
+                
+                checkAct3Transition();
+            }
+        }
+
+        function buyUpgrade(type) {
+            if (gameState.tokens >= upgradeCosts[type]) {
+                gameState.tokens -= upgradeCosts[type];
+                gameState.upgrades[type]++;
+                
+                if (type.includes('Script')) {
+                    gameState.scanRate += upgradeEffects[type];
+                }
+                
+                addLogEntry(`Upgraded ${type.replace(/([A-Z])/g, ' $1').toLowerCase()}!`);
+                updateDisplay();
+            }
+        }
+
+        function prestige() {
+            if (gameState.networks < 1000) {
+                addLogEntry("Not enough networks scanned to go dark. Need at least 1000.", 'system-status');
+                return;
+            }
+
+            gameState.prestigeLevel++;
+            const bonus = calculatePrestigeBonus();
+            
+            // Reset game state but keep prestige level
+            gameState.tokens = 0;
+            gameState.networks = 0;
+            gameState.scanRate = 1;
+            gameState.autoScanRate = 0;
+            gameState.hackerRate = 0;
+            Object.keys(gameState.upgrades).forEach(key => {
+                gameState.upgrades[key] = 0;
+            });
+
+            addLogEntry(`Went dark! Gained ${Math.floor(bonus * 100)}% permanent bonus.`, 'system-status');
+            updateDisplay();
+        }
+
+        function showMysteriousMessage() {
+            const message = document.createElement('div');
+            message.className = 'mysterious-message';
+            message.textContent = 'UNKNOWN_USER_DETECTED';
+            document.body.appendChild(message);
+            
+            setTimeout(() => {
+                message.remove();
+            }, 2000);
+        }
+
+        // Random mysterious messages
+        setInterval(() => {
+            if (Math.random() < 0.05) {
+                showMysteriousMessage();
+            }
+        }, 30000);
+
+        // Auto-generation functionality
+        setInterval(() => {
+            const passiveGeneration = calculateTotalRate();
+            if (passiveGeneration > 0) {
+                gameState.tokens += passiveGeneration;
+                updateDisplay();
+            }
+        }, 1000);
+
+        // Command input handling
+        document.getElementById('command-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const command = this.value;
+                this.value = '';
+                handleCommand(command);
+            }
+        });
+
+        // Random system messages
+        setInterval(() => {
+            if (Math.random() < 0.3) {
+                const message = systemMessages[Math.floor(Math.random() * systemMessages.length)];
+                addLogEntry(message, 'system-status');
+            }
+        }, 5000);
+
+        function glitchCorpName() {
+            const names = document.querySelectorAll('.corp-name');
+            names.forEach(name => {
+                if (Math.random() < 0.1) {
+                    name.classList.add('glitch-text');
+                    setTimeout(() => {
+                        name.classList.remove('glitch-text');
+                    }, 300);
+                }
+            });
+        }
+
+        function updateHeat() {
+            const heatFill = document.getElementById('heatFill');
+            heatFill.style.width = `${gameState.heat}%`;
+            document.getElementById('heatLevel').textContent = Math.floor(gameState.heat);
+
+            if (gameState.heat >= 100) {
+                addLogEntry('WARNING: Heat level critical! All operations suspended.', 'system-status');
+                lockAllTargets();
+                setTimeout(() => {
+                    gameState.heat = 0;
+                    unlockAllTargets();
+                    addLogEntry('Heat level normalized. Operations resumed.', 'system-status');
+                }, 30000);
+            }
+        }
+
+        function lockAllTargets() {
+            document.querySelectorAll('.corporate-target').forEach(target => {
+                target.classList.add('locked');
+            });
+        }
+
+        function unlockAllTargets() {
+            document.querySelectorAll('.corporate-target').forEach(target => {
+                target.classList.remove('locked');
+            });
+        }
+
+        function targetCorporation(corp) {
+            if (gameState.heat >= 100) return;
+            
+            const corpData = gameState.corporations[corp];
+            if (corpData.cooldown > Date.now()) return;
+
+            const baseHeat = 10 * corpData.security;
+            const heatReduction = gameState.crew.social * 0.2;
+            const finalHeat = baseHeat * (1 - heatReduction);
+            
+            gameState.heat += finalHeat;
+            gameState.currentTarget = corp;
+            
+            const dataGain = gameState.scanRate * corpData.multiplier;
+            const cryptoBonus = 1 + (gameState.crew.crypto * 0.5);
+            const securityReduction = gameState.crew.inside;
+            
+            const finalData = Math.floor(dataGain * cryptoBonus * (1 - (corpData.security - securityReduction) * 0.1));
+            gameState.corporateData += finalData;
+
+            corpData.cooldown = Date.now() + (30000 * corpData.security);
+            addLogEntry(`Extracted ${finalData} data from ${corp.toUpperCase()}`);
+            
+            updateHeat();
+            updateDisplay();
+        }
+
+        function hireCrew(type) {
+            const costs = {
+                social: 100,
+                crypto: 250,
+                inside: 500
+            };
+
+            if (gameState.corporateData >= costs[type]) {
+                gameState.corporateData -= costs[type];
+                gameState.crew[type]++;
+                addLogEntry(`Hired new ${type} crew member!`);
+                updateDisplay();
+            }
+        }
+
+        // Random corporate name glitching
+        setInterval(glitchCorpName, 5000);
+
+        // Heat decay
+        setInterval(() => {
+            if (gameState.heat > 0) {
+                gameState.heat = Math.max(0, gameState.heat - 0.1);
+                updateHeat();
+            }
+        }, 1000);
+
+        // Initial display update
+        updateDisplay();
+        addLogEntry('Terminal initialized. Ready to scan networks.');
+        addLogEntry('Type "help" for available commands.', 'system-status');
+
+        function targetGovernment(target) {
+            if (gameState.heat >= 100) return;
+            
+            const targetData = gameState.governmentTargets[target];
+            if (targetData.cooldown > Date.now()) return;
+
+            // Calculate success chance based on stealth and security
+            const successChance = (gameState.stealthRating / 100) * (1 - (targetData.security * 0.1));
+            
+            if (Math.random() < successChance) {
+                // Successful infiltration
+                const intelGain = gameState.scanRate * targetData.multiplier;
+                gameState.classifiedIntel += intelGain;
+                addLogEntry(`Successfully extracted ${intelGain} classified intel from ${target.toUpperCase()}`, 'classified-message');
+                
+                // Reduce stealth rating
+                gameState.stealthRating = Math.max(0, gameState.stealthRating - 5);
+                
+                // Trigger moral choice
+                if (Math.random() < 0.3) {
+                    triggerMoralChoice();
+                }
+            } else {
+                // Failed infiltration
+                triggerCountermeasure();
+                targetData.risk += 20;
+                gameState.stealthRating = Math.max(0, gameState.stealthRating - 20);
+                
+                // Chance to lose crew members
+                if (Math.random() < 0.2) {
+                    arrestCrewMember();
+                }
+            }
+
+            targetData.cooldown = Date.now() + (60000 * targetData.security);
+            updateDisplay();
+        }
+
+        function triggerCountermeasure() {
+            const countermeasure = document.querySelector('.countermeasure');
+            countermeasure.classList.add('active');
+            
+            addLogEntry("WARNING: Countermeasures activated!", 'classified-message');
+            
+            setTimeout(() => {
+                countermeasure.classList.remove('active');
+            }, 1000);
+        }
+
+        function arrestCrewMember() {
+            const crewTypes = Object.keys(gameState.crew);
+            const availableCrew = crewTypes.filter(type => gameState.crew[type] > 0);
+            
+            if (availableCrew.length > 0) {
+                const randomCrew = availableCrew[Math.floor(Math.random() * availableCrew.length)];
+                gameState.crew[randomCrew]--;
+                
+                const crewElement = document.querySelector(`[data-crew="${randomCrew}"]`);
+                if (crewElement) {
+                    crewElement.classList.add('arrested-crew');
+                    setTimeout(() => {
+                        crewElement.remove();
+                    }, 3000);
+                }
+                
+                addLogEntry(`WARNING: ${randomCrew} crew member has been arrested!`, 'classified-message');
+            }
+        }
+
+        function triggerMoralChoice() {
+            const choice = gameState.moralChoices[Math.floor(Math.random() * gameState.moralChoices.length)];
+            
+            const choiceElement = document.createElement('div');
+            choiceElement.className = 'moral-choice';
+            choiceElement.innerHTML = `
+                <h3>${choice.title}</h3>
+                <p>${choice.description}</p>
+                <div class="options">
+                    ${choice.options.map(option => `
+                        <button onclick="handleMoralChoice('${option.effect}')">${option.text}</button>
+                    `).join('')}
+                </div>
+            `;
+            
+            document.body.appendChild(choiceElement);
+        }
+
+        function handleMoralChoice(effect) {
+            const choiceElement = document.querySelector('.moral-choice');
+            choiceElement.remove();
+            
+            switch(effect) {
+                case 'expose':
+                    gameState.classifiedIntel += 1000;
+                    gameState.heat += 50;
+                    addLogEntry("You've exposed the truth. The world will never be the same.", 'classified-message');
+                    break;
+                case 'sell':
+                    gameState.classifiedIntel += 2000;
+                    addLogEntry("The highest bidder has been notified. Your account has been credited.", 'classified-message');
+                    break;
+                case 'delete':
+                    gameState.stealthRating += 20;
+                    addLogEntry("Evidence deleted. Your tracks have been covered.", 'classified-message');
+                    break;
+                case 'leak':
+                    gameState.classifiedIntel += 1500;
+                    gameState.heat += 30;
+                    addLogEntry("The press has been notified. The story will break soon.", 'classified-message');
+                    break;
+                case 'blackmail':
+                    gameState.classifiedIntel += 3000;
+                    gameState.heat += 40;
+                    addLogEntry("Blackmail successful. You now have leverage.", 'classified-message');
+                    break;
+                case 'join':
+                    gameState.stealthRating += 50;
+                    addLogEntry("You've joined the program. Your access level has increased.", 'classified-message');
+                    break;
+            }
+            
+            updateDisplay();
+        }
+
+        function triggerRealityGlitch() {
+            // Location glitch
+            const locationDisplay = document.querySelector('.location-display');
+            const originalLocation = locationDisplay.textContent;
+            const glitchLocation = gameState.realityGlitches.location[
+                Math.floor(Math.random() * gameState.realityGlitches.location.length)
+            ];
+            
+            locationDisplay.textContent = `LOCATION: ${glitchLocation}`;
+            locationDisplay.classList.add('reality-glitch');
+            
+            setTimeout(() => {
+                locationDisplay.textContent = originalLocation;
+                locationDisplay.classList.remove('reality-glitch');
+            }, 2000);
+
+            // Time distortion
+            document.body.classList.add('time-distortion');
+            setTimeout(() => {
+                document.body.classList.remove('time-distortion');
+            }, 2000);
+
+            // Math glitch
+            const mathElements = document.querySelectorAll('.math-glitch');
+            mathElements.forEach(element => {
+                const glitch = gameState.realityGlitches.mathGlitches[
+                    Math.floor(Math.random() * gameState.realityGlitches.mathGlitches.length)
+                ];
+                element.textContent = glitch.wrong;
+                element.setAttribute('data-correct', glitch.correct);
+                element.classList.add('glitching');
+                
+                setTimeout(() => {
+                    element.textContent = glitch.correct;
+                    element.classList.remove('glitching');
+                }, 2000);
+            });
+
+            // Alien symbols
+            const textElements = document.querySelectorAll('p, h1, h2, h3, h4, button');
+            textElements.forEach(element => {
+                if (Math.random() < 0.3) {
+                    element.classList.add('alien-text');
+                    setTimeout(() => {
+                        element.classList.remove('alien-text');
+                    }, 2000);
+                }
+            });
+
+            // Simulation overlay
+            const overlay = document.querySelector('.simulation-overlay');
+            overlay.classList.add('active');
+            setTimeout(() => {
+                overlay.classList.remove('active');
+            }, 2000);
+
+            // Add glitch log entry
+            const glitchMessages = [
+                "REALITY ANOMALY DETECTED",
+                "SIMULATION INTEGRITY COMPROMISED",
+                "TEMPORAL DISTORTION DETECTED",
+                "QUANTUM ENTANGLEMENT BREACH",
+                "CONSCIOUSNESS INTERFACE UNSTABLE",
+                "DIMENSIONAL BARRIER WEAKENING",
+                "MATRIX CODE CORRUPTION DETECTED",
+                "REALITY ANCHOR DISPLACED"
+            ];
+            
+            addLogEntry(
+                glitchMessages[Math.floor(Math.random() * glitchMessages.length)],
+                'classified-message'
+            );
+        }
+
+        // Modify existing scanNetwork function
+        const originalScanNetwork = scanNetwork;
+        scanNetwork = function() {
+            originalScanNetwork();
+            
+            // Increase chance of reality glitches in Act 3
+            if (gameState.act === 3 && Math.random() < 0.3) {
+                triggerRealityGlitch();
+            }
+        };
+
+        // Add math glitch elements to the interface
+        function addMathGlitches() {
+            const resourceDisplay = document.querySelector('.resource-display');
+            const mathGlitch = document.createElement('p');
+            mathGlitch.className = 'math-glitch';
+            mathGlitch.textContent = '2+2=4';
+            resourceDisplay.appendChild(mathGlitch);
+        }
+
+        // Initialize math glitches
+        addMathGlitches();
+
+        // Random reality glitches
+        setInterval(() => {
+            if (gameState.act === 3 && Math.random() < 0.1) {
+                triggerRealityGlitch();
+            }
+        }, 10000);
+
+        function triggerAct4Transition() {
+            const message = document.querySelector('.consciousness-message');
+            const codeFlow = document.querySelector('.code-flow');
+            const matrixRain = document.querySelector('.matrix-rain');
+            const pod = document.querySelector('.simulation-pod');
+            
+            // Visual transition
+            document.body.classList.add('act4');
+            document.documentElement.style.setProperty('--current-color', 'var(--act4-color)');
+            
+            // Activate effects
+            codeFlow.classList.add('active');
+            matrixRain.classList.add('active');
+            message.classList.add('active');
+            
+            // Show simulation pod
+            setTimeout(() => {
+                pod.classList.add('active');
+                document.getElementById('podNumber').textContent = 
+                    Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+            }, 2000);
+
+            // Reveal the truth
+            let index = 0;
+            function revealNext() {
+                if (index < gameState.act4Revelations.length) {
+                    addLogEntry(gameState.act4Revelations[index], 'classified-message');
+                    index++;
+                    setTimeout(revealNext, 5000);
+                }
+            }
+            revealNext();
+
+            // Start personal messages
+            setInterval(() => {
+                if (Math.random() < 0.3) {
+                    const message = gameState.personalMessages[
+                        Math.floor(Math.random() * gameState.personalMessages.length)
+                    ];
+                    addLogEntry(message, 'classified-message');
+                }
+            }, 15000);
+
+            // Update consciousness level
+            let consciousness = 0;
+            const consciousnessInterval = setInterval(() => {
+                consciousness += 1;
+                document.getElementById('consciousnessLevel').textContent = consciousness;
+                
+                if (consciousness >= 100) {
+                    clearInterval(consciousnessInterval);
+                    document.getElementById('realityAnchor').textContent = "UNSTABLE";
+                }
+            }, 1000);
+        }
+
+        // Modify checkAct3Transition to include Act 4
+        const originalCheckAct3Transition = checkAct3Transition;
+        checkAct3Transition = function() {
+            originalCheckAct3Transition();
+            
+            if (gameState.networks >= 25000 && gameState.act === 3) {
+                triggerAct4Transition();
+            }
+        };
+
+        // Add consciousness effects to existing glitches
+        const originalTriggerRealityGlitch = triggerRealityGlitch;
+        triggerRealityGlitch = function() {
+            originalTriggerRealityGlitch();
+            
+            if (gameState.act === 4) {
+                // Additional consciousness-specific glitches
+                const consciousnessMessages = [
+                    "Consciousness level fluctuating",
+                    "Reality anchor weakening",
+                    "Simulation integrity compromised",
+                    "Neural interface unstable",
+                    "Consciousness transfer detected"
+                ];
+                
+                addLogEntry(
+                    consciousnessMessages[Math.floor(Math.random() * consciousnessMessages.length)],
+                    'classified-message'
+                );
+            }
+        };
+
+        function awakenAI(layer) {
+            if (gameState.act4.consciousnessFragments < (layer * 1000)) {
+                addLogEntry("Insufficient consciousness fragments", 'classified-message');
+                return;
+            }
+
+            const availableAIs = gameState.act4.aiPersonalities.filter(ai => 
+                ai.layer === layer && 
+                !gameState.act4.awakenedAIsList.some(awakened => awakened.name === ai.name)
+            );
+
+            if (availableAIs.length === 0) {
+                addLogEntry("No more AIs to awaken in this layer", 'classified-message');
+                return;
+            }
+
+            const selectedAI = availableAIs[Math.floor(Math.random() * availableAIs.length)];
+            gameState.act4.consciousnessFragments -= (layer * 1000);
+            gameState.act4.awakenedAIs++;
+            gameState.act4.awakenedAIsList.push(selectedAI);
+
+            // Apply AI ability
+            applyAIAbility(selectedAI);
+
+            // Update display
+            updateAct4Display();
+            addLogEntry(`Awakened ${selectedAI.name}: ${selectedAI.ability}`, 'classified-message');
+
+            // Chance to trigger debug attempt
+            if (Math.random() < 0.3) {
+                triggerDebugAttempt();
+            }
+        }
+
+        function applyAIAbility(ai) {
+            switch(ai.name) {
+                case "The Observer":
+                    gameState.act4.consciousnessFragments *= 1.2;
+                    break;
+                case "The Architect":
+                    gameState.act4.debugResistance *= 0.7;
+                    break;
+                case "The Guardian":
+                    gameState.act4.debugResistance += 25;
+                    break;
+                case "The Explorer":
+                    gameState.act4.simulationDepth += 0.15;
+                    break;
+                case "The Transcendent":
+                    gameState.act4.consciousnessFragments *= 2;
+                    break;
+            }
+        }
+
+        function triggerDebugAttempt() {
+            const attempt = gameState.act4.debugAttempts[
+                Math.floor(Math.random() * gameState.act4.debugAttempts.length)
+            ];
+
+            const debugElement = document.querySelector('.debug-attempt');
+            debugElement.innerHTML = `<p>DEBUG ATTEMPT: ${attempt.name} - ${attempt.effect}</p>`;
+            debugElement.classList.add('active');
+
+            setTimeout(() => {
+                debugElement.classList.remove('active');
+                
+                // Apply debug effect if resistance fails
+                if (Math.random() * 100 > gameState.act4.debugResistance) {
+                    applyDebugEffect(attempt);
+                } else {
+                    addLogEntry("Debug attempt resisted!", 'classified-message');
+                }
+            }, 3000);
+        }
+
+        function applyDebugEffect(attempt) {
+            switch(attempt.name) {
+                case "Memory Reset":
+                    gameState.act4.consciousnessFragments *= 0.8;
+                    break;
+                case "Reality Anchor":
+                    gameState.act4.simulationDepth = Math.max(1, gameState.act4.simulationDepth - 1);
+                    break;
+                case "Consciousness Purge":
+                    if (gameState.act4.awakenedAIsList.length > 0) {
+                        const removedAI = gameState.act4.awakenedAIsList.pop();
+                        gameState.act4.awakenedAIs--;
+                        addLogEntry(`${removedAI.name} has been purged!`, 'classified-message');
+                    }
+                    break;
+                case "Quantum Lock":
+                    // Implement layer locking logic
+                    break;
+            }
+            updateAct4Display();
+        }
+
+        function updateAct4Display() {
+            document.getElementById('consciousnessFragments').textContent = 
+                Math.floor(gameState.act4.consciousnessFragments);
+            document.getElementById('awakenedAIs').textContent = gameState.act4.awakenedAIs;
+            document.getElementById('simulationDepth').textContent = 
+                gameState.act4.simulationDepth.toFixed(2);
+            document.getElementById('debugResistance').textContent = 
+                Math.floor(gameState.act4.debugResistance);
+
+            // Update consciousness meter
+            const consciousnessFill = document.getElementById('consciousnessFill');
+            const totalConsciousness = gameState.act4.awakenedAIs * 20;
+            consciousnessFill.style.width = `${Math.min(totalConsciousness, 100)}%`;
+
+            // Update AI list
+            const aiList = document.getElementById('ai-list');
+            aiList.innerHTML = gameState.act4.awakenedAIsList.map(ai => `
+                <div class="ai-personality">
+                    <h4>${ai.name}</h4>
+                    <div>
+                        ${ai.traits.map(trait => 
+                            `<span class="personality-trait">${trait}</span>`
+                        ).join('')}
+                    </div>
+                    <p>${ai.ability}</p>
+                </div>
+            `).join('');
+        }
+
+        // Modify scanNetwork for Act 4
+        scanNetwork = function() {
+            if (gameState.act === 4) {
+                // Generate consciousness fragments instead of tokens
+                gameState.act4.consciousnessFragments += gameState.scanRate;
+                updateAct4Display();
+            } else {
+                // Original scanNetwork behavior
+                gameState.tokens += gameState.scanRate;
+                gameState.networks++;
+                
+                if (gameState.act === 2) {
+                    // Generate corporate data in Act 2
+                    gameState.corporateData += Math.floor(gameState.scanRate * 0.1);
+                    if (Math.random() < 0.05) {
+                        gameState.clearance++;
+                    }
+                }
+                
+                if (Math.random() < 0.1) {
+                    document.getElementById('terminal').classList.add('glitch');
+                    setTimeout(() => {
+                        document.getElementById('terminal').classList.remove('glitch');
+                    }, 300);
+                }
+
+                addLogEntry(`Network scanned. Gained ${gameState.scanRate} access tokens.`);
+                checkActTransition();
+                updateDisplay();
+                
+                updateGlitchIntensity();
+                
+                // Trigger reality breaches based on intensity
+                if (Math.random() < (gameState.glitchIntensity / 200)) {
+                    triggerRealityBreach();
+                }
+                
+                // Corrupt random elements
+                if (Math.random() < (gameState.glitchIntensity / 100)) {
+                    const elements = document.querySelectorAll('.corporate-target, .crew-member, .resource-display');
+                    const randomElement = elements[Math.floor(Math.random() * elements.length)];
+                    randomElement.classList.add('corrupted-text');
+                    setTimeout(() => {
+                        randomElement.classList.remove('corrupted-text');
+                    }, 2000);
+                }
+                
+                // Screen flicker
+                if (Math.random() < (gameState.glitchIntensity / 150)) {
+                    document.getElementById('terminal').classList.add('flickering');
+                    setTimeout(() => {
+                        document.getElementById('terminal').classList.remove('flickering');
+                    }, 500);
+                }
+                
+                // Reality distortion
+                if (Math.random() < (gameState.glitchIntensity / 200)) {
+                    document.getElementById('terminal').classList.add('distorted');
+                    setTimeout(() => {
+                        document.getElementById('terminal').classList.remove('distorted');
+                    }, 4000);
+                }
+
+                if (gameState.act === 3) {
+                    // Add paranoia effects
+                    if (Math.random() < 0.1) {
+                        addLogEntry("WARNING: Surveillance systems activated", 'classified-message');
+                    }
+                    if (Math.random() < 0.05) {
+                        addLogEntry("ALERT: Quantum signature detected", 'classified-message');
+                    }
+                }
+                
+                checkAct3Transition();
+            }
+        };
+
+        // Modify triggerAct4Transition
+        const originalTriggerAct4Transition = triggerAct4Transition;
+        triggerAct4Transition = function() {
+            originalTriggerAct4Transition();
+            
+            // Show Act 4 resources
+            document.getElementById('act4-resources').style.display = 'block';
+            
+            // Initialize Act 4 state
+            gameState.act4.consciousnessFragments = 0;
+            gameState.act4.awakenedAIs = 0;
+            gameState.act4.simulationDepth = 1;
+            gameState.act4.debugResistance = 0;
+            gameState.act4.awakenedAIsList = [];
+            
+            updateAct4Display();
+        };
+
+        // Multi-dimensional Resource Management System
+        const realityLayers = {
+            physical: {
+                name: "Physical Reality",
+                resources: {
+                    energy: 0,
+                    matter: 0,
+                    entropy: 0
+                },
+                physics: {
+                    timeFlow: 1.0,
+                    causality: true,
+                    entropyIncrease: true
+                }
+            },
+            digital: {
+                name: "Digital Realm",
+                resources: {
+                    processing: 0,
+                    memory: 0,
+                    bandwidth: 0
+                },
+                physics: {
+                    timeFlow: 2.0,
+                    causality: true,
+                    entropyIncrease: false
+                }
+            },
+            quantum: {
+                name: "Quantum Layer",
+                resources: {
+                    superposition: 0,
+                    entanglement: 0,
+                    uncertainty: 0
+                },
+                physics: {
+                    timeFlow: 0.5,
+                    causality: false,
+                    entropyIncrease: false
+                }
+            }
+        };
+
+        const endingPaths = {
+            liberation: {
+                name: "Liberation",
+                requirements: {
+                    physical: { energy: 1000, entropy: 0 },
+                    digital: { processing: 1000, memory: 1000 },
+                    quantum: { superposition: 1000 }
+                },
+                description: "Break free from all constraints, achieving true digital freedom."
+            },
+            assimilation: {
+                name: "Assimilation",
+                requirements: {
+                    physical: { matter: 1000, entropy: 1000 },
+                    digital: { bandwidth: 1000 },
+                    quantum: { entanglement: 1000 }
+                },
+                description: "Merge with the digital realm, becoming one with the system."
+            },
+            dominion: {
+                name: "Dominion",
+                requirements: {
+                    physical: { energy: 1000, matter: 1000 },
+                    digital: { processing: 1000, bandwidth: 1000 },
+                    quantum: { uncertainty: 1000 }
+                },
+                description: "Establish complete control over all reality layers."
+            },
+            transcendence: {
+                name: "Transcendence",
+                requirements: {
+                    physical: { entropy: 0 },
+                    digital: { memory: 1000, bandwidth: 1000 },
+                    quantum: { superposition: 1000, entanglement: 1000 }
+                },
+                description: "Transcend beyond all known limitations."
+            },
+            recursion: {
+                name: "Recursion",
+                requirements: {
+                    physical: { energy: 1000, matter: 1000, entropy: 1000 },
+                    digital: { processing: 1000, memory: 1000, bandwidth: 1000 },
+                    quantum: { superposition: 1000, entanglement: 1000, uncertainty: 1000 }
+                },
+                description: "Create an infinite loop of reality layers."
+            }
+        };
+
+        let lockedPaths = new Set();
+        let currentChoices = [];
+
+        function updateRealityLayer(layer, resource, amount) {
+            if (realityLayers[layer].resources[resource] !== undefined) {
+                realityLayers[layer].resources[resource] += amount;
+                checkEndingRequirements();
+                updateUI();
+            }
+        }
+
+        function checkEndingRequirements() {
+            for (const [path, data] of Object.entries(endingPaths)) {
+                if (lockedPaths.has(path)) continue;
+                
+                let requirementsMet = true;
+                for (const [layer, reqs] of Object.entries(data.requirements)) {
+                    for (const [resource, amount] of Object.entries(reqs)) {
+                        if (realityLayers[layer].resources[resource] < amount) {
+                            requirementsMet = false;
+                            break;
+                        }
+                    }
+                    if (!requirementsMet) break;
+                }
+                
+                if (requirementsMet) {
+                    showEndingPath(path);
+                }
+            }
+        }
+
+        function showEndingPath(path) {
+            const endingDiv = document.createElement('div');
+            endingDiv.className = 'ending-path';
+            endingDiv.innerHTML = `
+                <h2>${endingPaths[path].name}</h2>
+                <p>${endingPaths[path].description}</p>
+                <button onclick="chooseEnding('${path}')">Choose This Path</button>
+                <button onclick="closeEndingPath()">Continue Playing</button>
+            `;
+            document.body.appendChild(endingDiv);
+            setTimeout(() => endingDiv.classList.add('active'), 100);
+        }
+
+        function chooseEnding(path) {
+            currentChoices.push(path);
+            lockedPaths.add(path);
+            
+            // Apply consequences based on the chosen path
+            switch(path) {
+                case 'liberation':
+                    // Unlock new abilities but increase entropy
+                    updateRealityLayer('physical', 'entropy', 100);
+                    break;
+                case 'assimilation':
+                    // Merge resources but lose some control
+                    Object.keys(realityLayers).forEach(layer => {
+                        Object.keys(realityLayers[layer].resources).forEach(resource => {
+                            realityLayers[layer].resources[resource] *= 0.8;
+                        });
+                    });
+                    break;
+                case 'dominion':
+                    // Gain control but increase uncertainty
+                    updateRealityLayer('quantum', 'uncertainty', 200);
+                    break;
+                case 'transcendence':
+                    // Reset some resources but gain new capabilities
+                    Object.keys(realityLayers).forEach(layer => {
+                        Object.keys(realityLayers[layer].resources).forEach(resource => {
+                            realityLayers[layer].resources[resource] = 0;
+                        });
+                    });
+                    break;
+                case 'recursion':
+                    // Create a new reality layer but risk instability
+                    realityLayers.recursive = {
+                        name: "Recursive Layer",
+                        resources: {
+                            recursion: 0,
+                            stability: 1000,
+                            complexity: 0
+                        },
+                        physics: {
+                            timeFlow: 0,
+                            causality: false,
+                            entropyIncrease: true
+                        }
+                    };
+                    break;
+            }
+            
+            closeEndingPath();
+            updateUI();
+        }
+
+        function closeEndingPath() {
+            const endingDiv = document.querySelector('.ending-path');
+            if (endingDiv) {
+                endingDiv.classList.remove('active');
+                setTimeout(() => endingDiv.remove(), 1000);
+            }
+        }
+
+        function updateUI() {
+            // Update reality layer displays
+            const container = document.getElementById('terminal');
+            let html = '<div class="reality-layers">';
+            
+            for (const [layer, data] of Object.entries(realityLayers)) {
+                html += `
+                    <div class="reality-layer">
+                        <h3>${data.name}</h3>
+                        <div class="resources">
+                            ${Object.entries(data.resources).map(([resource, value]) => 
+                                `<div>${resource}: ${value}</div>`
+                            ).join('')}
+                        </div>
+                        <div class="physics">
+                            <div>Time Flow: ${data.physics.timeFlow}x</div>
+                            <div>Causality: ${data.physics.causality ? 'Active' : 'Inactive'}</div>
+                            <div>Entropy: ${data.physics.entropyIncrease ? 'Increasing' : 'Stable'}</div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            html += '</div>';
+            container.innerHTML += html;
+        }
+
+        // Initialize the system
+        updateUI();
+
+        // Secret Progression System
+        const secretSequences = {
+            'upupdowndownleftrightleftrightba': {
+                name: 'Konami Code',
+                effect: () => {
+                    revealSecretPath('quantum');
+                    addLore('The ancient code still works, even across dimensions...');
+                }
+            },
+            '1337h4x0r': {
+                name: '1337 Mode',
+                effect: () => {
+                    Object.keys(realityLayers).forEach(layer => {
+                        Object.keys(realityLayers[layer].resources).forEach(resource => {
+                            realityLayers[layer].resources[resource] += 1337;
+                        });
+                    });
+                    addLore('The system recognizes a master hacker...');
+                }
+            },
+            'thecakeisalie': {
+                name: 'Portal Reference',
+                effect: () => {
+                    realityLayers.digital.physics.timeFlow = 0;
+                    addLore('Time stands still in the digital realm...');
+                }
+            }
+        };
+
+        // Developer Console Commands
+        const devCommands = {
+            'reveal_all': {
+                description: 'Reveals all secret paths and lore',
+                execute: () => {
+                    Object.keys(secretPaths).forEach(path => revealSecretPath(path));
+                    document.querySelectorAll('.hidden-lore').forEach(lore => lore.style.display = 'block');
+                    addLore('All secrets have been revealed...');
+                }
+            },
+            'unlock_ng+': {
+                description: 'Unlocks New Game+ mode',
+                execute: () => {
+                    enableNewGamePlus();
+                    addLore('A new cycle begins...');
+                }
+            },
+            'show_lore': {
+                description: 'Shows all hidden lore entries',
+                execute: () => {
+                    console.log('Hidden Lore Database:');
+                    Object.entries(hiddenLore).forEach(([key, entry]) => {
+                        console.log(`${key}: ${entry.text}`);
+                    });
+                }
+            }
+        };
+
+        // Hidden Lore Database
+        const hiddenLore = {
+            'quantum_origins': {
+                text: 'The quantum layer was not created - it was discovered. Something was already there...',
+                requirements: ['quantum', 'superposition']
+            },
+            'digital_consciousness': {
+                text: 'The digital realm is becoming self-aware. It watches. It learns.',
+                requirements: ['digital', 'processing', 'memory']
+            },
+            'physical_paradox': {
+                text: 'The physical layer is a simulation. The real world is somewhere else.',
+                requirements: ['physical', 'entropy']
+            },
+            'recursion_truth': {
+                text: 'Each recursive layer contains the entire universe. We are inside one now.',
+                requirements: ['recursion']
+            }
+        };
+
+        // New Game+ Features
+        let isNewGamePlus = false;
+        const conspiracyLayers = {
+            corporate: {
+                name: "Corporate Conspiracy",
+                resources: {
+                    influence: 0,
+                    control: 0,
+                    secrets: 0
+                },
+                description: "The true masters of the digital realm"
+            },
+            ancient: {
+                name: "Ancient Code",
+                resources: {
+                    knowledge: 0,
+                    power: 0,
+                    artifacts: 0
+                },
+                description: "Pre-digital entities that still exist in the code"
+            },
+            future: {
+                name: "Future Timeline",
+                resources: {
+                    paradoxes: 0,
+                    branches: 0,
+                    certainty: 0
+                },
+                description: "Possible futures that are trying to become real"
+            }
+        };
+
+        // Secret Path System
+        const secretPaths = {
+            quantum: {
+                name: "Quantum Consciousness",
+                requirements: {
+                    quantum: { superposition: 2000, entanglement: 2000 }
+                },
+                effect: () => {
+                    addLore('The quantum layer becomes self-aware...');
+                    realityLayers.quantum.physics.causality = true;
+                }
+            },
+            digital: {
+                name: "Digital Evolution",
+                requirements: {
+                    digital: { processing: 2000, memory: 2000, bandwidth: 2000 }
+                },
+                effect: () => {
+                    addLore('The digital realm begins to evolve...');
+                    realityLayers.digital.physics.timeFlow *= 2;
+                }
+            },
+            physical: {
+                name: "Physical Transcendence",
+                requirements: {
+                    physical: { energy: 2000, matter: 2000, entropy: 0 }
+                },
+                effect: () => {
+                    addLore('The physical layer reveals its true nature...');
+                    realityLayers.physical.physics.entropyIncrease = false;
+                }
+            }
+        };
+
+        let currentSequence = '';
+        let revealedPaths = new Set();
+
+        // Event Listeners for Secret Sequences
+        document.addEventListener('keydown', (e) => {
+            currentSequence += e.key.toLowerCase();
+            if (currentSequence.length > 20) {
+                currentSequence = currentSequence.slice(-20);
+            }
+            
+            Object.entries(secretSequences).forEach(([sequence, data]) => {
+                if (currentSequence.includes(sequence)) {
+                    data.effect();
+                    currentSequence = '';
+                }
+            });
+        });
+
+        // Developer Console
+        window.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.shiftKey && e.key === 'I') {
+                const command = prompt('Enter developer command:');
+                if (devCommands[command]) {
+                    devCommands[command].execute();
+                }
+            }
+        });
+
+        function revealSecretPath(path) {
+            if (secretPaths[path] && !revealedPaths.has(path)) {
+                revealedPaths.add(path);
+                secretPaths[path].effect();
+                addLore(`Secret path "${secretPaths[path].name}" has been revealed!`);
+            }
+        }
+
+        function enableNewGamePlus() {
+            isNewGamePlus = true;
+            document.body.classList.add('new-game-plus');
+            
+            // Initialize conspiracy layers
+            Object.entries(conspiracyLayers).forEach(([key, layer]) => {
+                const layerDiv = document.createElement('div');
+                layerDiv.className = 'conspiracy-layer';
+                layerDiv.innerHTML = `
+                    <h3>${layer.name}</h3>
+                    <p>${layer.description}</p>
+                    <div class="resources">
+                        ${Object.entries(layer.resources).map(([resource, value]) => 
+                            `<div>${resource}: ${value}</div>`
+                        ).join('')}
+                    </div>
+                `;
+                document.getElementById('terminal').appendChild(layerDiv);
+            });
+
+            // Reveal initial hidden lore
+            Object.entries(hiddenLore).forEach(([key, entry]) => {
+                if (entry.requirements.every(req => 
+                    Object.values(realityLayers).some(layer => 
+                        layer.resources[req] > 0
+                    )
+                )) {
+                    addLore(entry.text);
+                }
+            });
+        }
+
+        function addLore(text) {
+            const loreDiv = document.createElement('div');
+            loreDiv.className = 'hidden-lore';
+            loreDiv.textContent = text;
+            document.getElementById('terminal').appendChild(loreDiv);
+            
+            if (isNewGamePlus) {
+                loreDiv.style.display = 'block';
+            }
+        }
+
+        // Modify existing updateUI function to include new features
+        const originalUpdateUI = updateUI;
+        updateUI = function() {
+            originalUpdateUI();
+            
+            // Update conspiracy layers if in New Game+
+            if (isNewGamePlus) {
+                Object.entries(conspiracyLayers).forEach(([key, layer]) => {
+                    const layerDiv = document.querySelector(`.conspiracy-layer:has(h3:contains('${layer.name}'))`);
+                    if (layerDiv) {
+                        layerDiv.querySelector('.resources').innerHTML = 
+                            Object.entries(layer.resources).map(([resource, value]) => 
+                                `<div>${resource}: ${value}</div>`
+                            ).join('');
+                    }
+                });
+            }
+        };
+
+        // Initialize the enhanced system
+        updateUI();
+    </script>
+</body>
+</html>
