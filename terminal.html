@@ -1,0 +1,1742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXUS: Digital Infiltration</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Courier Prime', monospace;
+            background: #0a0a0a;
+            color: #00ff00;
+            overflow: hidden;
+            height: 100vh;
+        }
+        
+        .game-container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(45deg, #0a0a0a, #1a1a2e);
+        }
+        
+        .header {
+            background: #16213e;
+            padding: 10px 20px;
+            border-bottom: 2px solid #00ff00;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #00ff00;
+            text-shadow: 0 0 10px #00ff00;
+        }
+        
+        .stats {
+            display: flex;
+            gap: 20px;
+            font-size: 14px;
+        }
+        
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .stat-bar {
+            width: 100px;
+            height: 10px;
+            background: #333;
+            border: 1px solid #00ff00;
+            position: relative;
+        }
+        
+        .stat-fill {
+            height: 100%;
+            background: #00ff00;
+            transition: width 0.3s ease;
+        }
+        
+        .main-content {
+            flex: 1;
+            display: flex;
+        }
+        
+        .terminal {
+            flex: 1;
+            padding: 20px;
+            background: rgba(0, 20, 0, 0.8);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        
+        .terminal-output {
+            flex: 1;
+            margin-bottom: 20px;
+            line-height: 1.6;
+            overflow-y: auto;
+            max-height: calc(100vh - 200px);
+            padding-right: 10px;
+        }
+        
+        .terminal-output::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .terminal-output::-webkit-scrollbar-track {
+            background: rgba(0, 255, 0, 0.1);
+        }
+        
+        .terminal-output::-webkit-scrollbar-thumb {
+            background: #00ff00;
+            border-radius: 4px;
+        }
+        
+        .terminal-output::-webkit-scrollbar-thumb:hover {
+            background: #00cc00;
+        }
+        
+        .terminal-line {
+            margin-bottom: 5px;
+            animation: typewriter 0.5s ease-out;
+        }
+        
+        .terminal-input {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+            margin-top: auto;
+        }
+        
+        .prompt {
+            color: #00ff00;
+            font-weight: bold;
+        }
+        
+        .input-field {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #00ff00;
+            font-family: inherit;
+            font-size: 16px;
+            outline: none;
+            border-bottom: 1px solid #00ff00;
+            padding: 5px;
+        }
+        
+        .sidebar {
+            width: 300px;
+            background: rgba(22, 33, 62, 0.9);
+            border-left: 2px solid #00ff00;
+            padding: 20px;
+        }
+        
+        .section {
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            color: #00ff00;
+            font-weight: bold;
+            margin-bottom: 15px;
+            font-size: 18px;
+            text-transform: uppercase;
+        }
+        
+        .target-list {
+            list-style: none;
+        }
+        
+        .target-item {
+            background: rgba(0, 255, 0, 0.1);
+            border: 1px solid #00ff00;
+            padding: 10px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .target-item:hover {
+            background: rgba(0, 255, 0, 0.2);
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+        }
+        
+        .target-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .target-difficulty {
+            font-size: 12px;
+            color: #ffff00;
+        }
+        
+        .tools-list {
+            list-style: none;
+        }
+        
+        .tool-item {
+            background: rgba(255, 255, 0, 0.1);
+            border: 1px solid #ffff00;
+            padding: 8px;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        .minigame-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .minigame-content {
+            background: #16213e;
+            border: 2px solid #00ff00;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 600px;
+            width: 90%;
+        }
+        
+        .puzzle-visual {
+            background: rgba(0, 255, 0, 0.1);
+            border: 1px solid #00ff00;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+            font-size: 24px;
+            font-family: 'Courier Prime', monospace;
+            letter-spacing: 4px;
+        }
+        
+        .cipher-text {
+            color: #ffff00;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        
+        .keypad-visual {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            max-width: 200px;
+            margin: 20px auto;
+        }
+        
+        .key {
+            background: rgba(0, 255, 0, 0.2);
+            border: 1px solid #00ff00;
+            padding: 15px;
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        
+        .key.highlight {
+            background: rgba(255, 255, 0, 0.3);
+            border-color: #ffff00;
+            color: #ffff00;
+        }
+        
+        .minigame-title {
+            font-size: 24px;
+            color: #00ff00;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .password-challenge {
+            text-align: center;
+        }
+        
+        .password-hint {
+            margin-bottom: 20px;
+            color: #ffff00;
+        }
+        
+        .password-input {
+            width: 100%;
+            padding: 10px;
+            background: transparent;
+            border: 1px solid #00ff00;
+            color: #00ff00;
+            font-family: inherit;
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+        
+        .btn {
+            background: transparent;
+            border: 2px solid #00ff00;
+            color: #00ff00;
+            padding: 10px 20px;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            background: #00ff00;
+            color: #000;
+        }
+        
+        .breach-alert {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 0, 0, 0.8);
+            color: #fff;
+            padding: 20px;
+            border: 2px solid #ff0000;
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+            display: none;
+            z-index: 1000;
+        }
+        
+        @keyframes typewriter {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes glitch {
+            0% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+            100% { transform: translate(0); }
+        }
+        
+        .glitch {
+            animation: glitch 0.3s infinite;
+        }
+        
+        .scroll-btn {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            background: rgba(0, 255, 0, 0.2);
+            border: 2px solid #00ff00;
+            color: #00ff00;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .scroll-btn:hover {
+            background: rgba(0, 255, 0, 0.4);
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.6);
+            transform: scale(1.1);
+        }
+        
+        .scroll-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .matrix-mode {
+            background: #000 !important;
+            color: #0f0 !important;
+        }
+        
+        .matrix-mode .terminal {
+            background: rgba(0, 0, 0, 0.9) !important;
+        }
+        
+        .matrix-mode .terminal-line {
+            text-shadow: 0 0 5px #0f0;
+        }
+        
+        .matrix-mode .input-field {
+            color: #0f0 !important;
+            border-color: #0f0 !important;
+        }
+        
+        .matrix-mode .prompt {
+            color: #0f0 !important;
+        }
+        
+        .matrix-mode .btn {
+            border-color: #0f0 !important;
+            color: #0f0 !important;
+        }
+        
+        .matrix-mode .btn:hover {
+            background: #0f0 !important;
+            color: #000 !important;
+        }
+
+        .monochrome-mode {
+            background: #1a1a1a !important;
+            color: #cccccc !important;
+        }
+        
+        .monochrome-mode .terminal {
+            background: rgba(30, 30, 30, 0.9) !important;
+        }
+        
+        .monochrome-mode .terminal-line {
+            text-shadow: none;
+        }
+        
+        .monochrome-mode .input-field {
+            color: #cccccc !important;
+            border-color: #cccccc !important;
+        }
+        
+        .monochrome-mode .prompt {
+            color: #cccccc !important;
+        }
+        
+        .monochrome-mode .btn {
+            border-color: #cccccc !important;
+            color: #cccccc !important;
+        }
+        
+        .monochrome-mode .btn:hover {
+            background: #cccccc !important;
+            color: #1a1a1a !important;
+        }
+        
+        .tron-mode {
+            background: #0a0a1a !important;
+            color: #00ffff !important;
+        }
+        
+        .tron-mode .terminal {
+            background: rgba(0, 10, 30, 0.9) !important;
+        }
+        
+        .tron-mode .terminal-line {
+            text-shadow: 0 0 5px #00ffff;
+        }
+        
+        .tron-mode .input-field {
+            color: #00ffff !important;
+            border-color: #00ffff !important;
+        }
+        
+        .tron-mode .prompt {
+            color: #00ffff !important;
+        }
+        
+        .tron-mode .btn {
+            border-color: #00ffff !important;
+            color: #00ffff !important;
+        }
+        
+        .tron-mode .btn:hover {
+            background: #00ffff !important;
+            color: #0a0a1a !important;
+        }
+        
+        .inferno-mode {
+            background: #1a0a0a !important;
+            color: #ff0000 !important;
+        }
+        
+        .inferno-mode .terminal {
+            background: rgba(30, 0, 0, 0.9) !important;
+        }
+        
+        .inferno-mode .terminal-line {
+            text-shadow: 0 0 5px #ff0000;
+        }
+        
+        .inferno-mode .input-field {
+            color: #ff0000 !important;
+            border-color: #ff0000 !important;
+        }
+        
+        .inferno-mode .prompt {
+            color: #ff0000 !important;
+        }
+        
+        .inferno-mode .btn {
+            border-color: #ff0000 !important;
+            color: #ff0000 !important;
+        }
+        
+        .inferno-mode .btn:hover {
+            background: #ff0000 !important;
+            color: #1a0a0a !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="breach-alert" id="breachAlert">SECURITY BREACH DETECTED</div>
+    <div class="game-container">
+        <div class="header">
+            <div class="logo">NEXUS v2.1</div>
+            <div class="stats">
+                <div class="stat">
+                    <span>TRACE:</span>
+                    <div class="stat-bar">
+                        <div class="stat-fill" id="trace-bar" style="width: 0%"></div>
+                    </div>
+                </div>
+                <div class="stat">
+                    <span>REP:</span>
+                    <span id="reputation">0</span>
+                </div>
+                <div class="stat">
+                    <span>CREDITS:</span>
+                    <span id="credits">100</span>
+                </div>
+                <div class="stat">
+                    <span>RANK:</span>
+                    <span id="rank">Script Kiddie</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="terminal">
+                <div class="terminal-output" id="terminal-output">
+                    <div class="terminal-line">> NEXUS NETWORK ACCESS GRANTED</div>
+                    <div class="terminal-line">> Welcome to the underground, hacker.</div>
+                    <div class="terminal-line">> Your reputation precedes you...</div>
+                    <div class="terminal-line">> Available targets are listed on your right.</div>
+                    <div class="terminal-line">> Choose wisely. Every hack leaves a trace.</div>
+                    <div class="terminal-line">> Type 'help' for available commands.</div>
+                    <div class="terminal-line">></div>
+                </div>
+                
+                <div class="terminal-input">
+                    <span class="prompt" id="prompt-span">root@nexus:~$</span>
+                    <input type="text" class="input-field" id="command-input" placeholder="Enter command..." autocomplete="off">
+                </div>
+                
+                <button class="scroll-btn" id="scroll-btn" onclick="scrollToBottom()" title="Scroll to bottom">
+                    ↓
+                </button>
+            </div>
+            
+            <div class="sidebar">
+                <div class="section">
+                    <div class="section-title">Available Targets</div>
+                    <ul class="target-list" id="target-list">
+                        <li class="target-item" data-target="gameserver">
+                            <div class="target-name">RetroArcade Server</div>
+                            <div class="target-difficulty">Difficulty: Easy | Reward: 50 Credits</div>
+                        </li>
+                        <li class="target-item" data-target="socialnet">
+                            <div class="target-name">SocialNet Database</div>
+                            <div class="target-difficulty">Difficulty: Medium | Reward: 150 Credits</div>
+                        </li>
+                        <li class="target-item" data-target="corpnet">
+                            <div class="target-name">CorpNet Mainframe</div>
+                            <div class="target-difficulty">Difficulty: Hard | Reward: 300 Credits</div>
+                        </li>
+                        <li class="target-item" data-target="quantum">
+                            <div class="target-name">Quantum Research Lab</div>
+                            <div class="target-difficulty">Difficulty: Expert | Reward: 500 Credits</div>
+                        </li>
+                        <li class="target-item" data-target="ai_core">
+                            <div class="target-name">AI Core Network</div>
+                            <div class="target-difficulty">Difficulty: Master | Reward: 1000 Credits</div>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="section">
+                    <div class="section-title">Your Tools</div>
+                    <ul class="tools-list" id="tools-list">
+                        <li class="tool-item">Basic Scanner</li>
+                        <li class="tool-item">Password Cracker</li>
+                        <li class="tool-item">Trace Cleaner</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="minigame-overlay" id="minigame-overlay">
+        <div class="minigame-content">
+            <div class="minigame-title" id="minigame-title">SECURITY BREACH</div>
+            <div id="minigame-content"></div>
+        </div>
+    </div>
+
+    <div id="bootloader-screen" style="
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: black;
+        color: #00ff00;
+        font-family: 'Courier Prime', monospace;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        z-index: 99999;
+    ">
+        <pre style="text-align: center; font-size: 14px;" id="bootloader-text">
+    NEXUS v2.1 SYSTEM BOOT
+    ███████╗███╗   ██╗███████╗██╗   ██╗██╗   ██╗███████╗
+    ██╔════╝████╗  ██║██╔════╝██║   ██║██║   ██║██╔════╝
+    █████╗  ██╔██╗ ██║█████╗  ██║   ██║██║   ██║█████╗  
+    ██╔══╝  ██║╚██╗██║██╔══╝  ██║   ██║██║   ██║██╔══╝  
+    ███████╗██║ ╚████║███████╗╚██████╔╝╚██████╔╝███████╗
+    ╚══════╝╚═╝  ╚═══╝╚══════╝ ╚═════╝  ╚═════╝ ╚══════╝
+
+    > INITIATING SECURE BOOT...
+    > BIOS AUTH OK
+    > ENCRYPTED TRACE SYSTEM READY
+    > SAFEHOUSE ENCRYPTION SYNCED
+    > LOADING TERMINAL INTERFACE . . .
+        </pre>
+    </div>
+
+    <script>
+        // Get DOM elements
+        const terminalOutput = document.getElementById('terminal-output');
+        const commandInput = document.getElementById('command-input');
+        const minigameOverlay = document.getElementById('minigame-overlay');
+        const creditsDisplay = document.getElementById('credits');
+        const reputationDisplay = document.getElementById('reputation');
+        const traceBar = document.getElementById('trace-bar');
+        const rankDisplay = document.getElementById('rank');
+        const promptSpan = document.getElementById('prompt-span');
+        const bootScreen = document.getElementById('bootloader-screen');
+        const breachAlert = document.getElementById('breachAlert');
+
+        // Initialize game state
+        let gameState = {
+            credits: 100,
+            reputation: 0,
+            traceLevel: 0,
+            heat: 0,
+            level: 1,
+            xp: 0,
+            tools: { scanner: 1, cracker: 1, cleaner: 1 },
+            upgrades: { scanner: 1, cracker: 1, cleaner: 1 },
+            discoveredTargets: ['gameserver', 'socialnet', 'corpnet', 'quantum', 'ai_core'],
+            lastSave: Date.now(),
+            commandHistory: [],
+            historyIndex: -1,
+            customPrompt: 'root@nexus:~$ ',
+            safehouse: { scannerRoom: 0, firewallLab: 0, cryptoMiner: 0 },
+            cryptoHoldings: { bitghost: 0, zerocoin: 0 },
+            factions: {
+                phreakers: { reputation: 0, missions: [] },
+                cryptos: { reputation: 0, missions: [] },
+                anarchists: { reputation: 0, missions: [] }
+            },
+            team: { hackers: [], mercenaries: [] },
+            achievements: [],
+            easterEggs: { matrix: false, konami: false, hackerman: false },
+            wanted: false,
+            isBreached: false,
+            commandEntered: false,
+            currentTarget: null
+        };
+
+        // Load saved game
+        const savedGameData = localStorage.getItem('nexusSave');
+        if (savedGameData) {
+            try {
+                gameState = { ...gameState, ...JSON.parse(savedGameData) };
+                addTerminalLine('> Save file loaded successfully.');
+            } catch (e) {
+                addTerminalLine('> Error loading save file. Starting new game.');
+            }
+        }
+
+        // Hide bootloader after 5 seconds
+        setTimeout(() => {
+            bootScreen.style.display = 'none';
+            addTerminalLine('> Welcome back, operator.');
+            addTerminalLine('> NEXUS interface fully loaded.');
+            commandInput.focus();
+        }, 5000);
+
+        // Core utility functions
+        function addTerminalLine(text) {
+            const line = document.createElement('div');
+            line.className = 'terminal-line';
+            line.textContent = text;
+            terminalOutput.appendChild(line);
+            terminalOutput.scrollTop = terminalOutput.scrollHeight;
+        }
+
+        function scrollToBottom() {
+            terminalOutput.scrollTop = terminalOutput.scrollHeight;
+        }
+
+        function updateDisplay() {
+            creditsDisplay.textContent = gameState.credits;
+            reputationDisplay.textContent = gameState.reputation;
+            traceBar.style.width = `${gameState.traceLevel}%`;
+            rankDisplay.textContent = determineRank(gameState.reputation);
+            promptSpan.textContent = gameState.customPrompt;
+            if (gameState.traceLevel >= 100 && !gameState.isBreached) {
+                gameState.isBreached = true;
+                breachAlert.style.display = 'block';
+                addTerminalLine('> WARNING: SECURITY BREACH DETECTED! Use "clean" to clear trace.');
+            } else if (gameState.traceLevel < 100 && gameState.isBreached) {
+                gameState.isBreached = false;
+                breachAlert.style.display = 'none';
+            }
+        }
+
+        function determineRank(reputation) {
+            if (reputation >= 1000) return 'Hackerman';
+            if (reputation >= 500) return 'Master';
+            if (reputation >= 200) return 'Expert';
+            if (reputation >= 100) return 'Advanced';
+            if (reputation >= 50) return 'Intermediate';
+            return 'Script Kiddie';
+        }
+
+        // Available targets
+        const targets = {
+            gameserver: {
+                name: 'RetroArcade Server',
+                difficulty: 'Easy',
+                reward: 50,
+                password: 'level1',
+                pattern: 'L_V_L1',
+                hint: 'Pattern: L_V_L1 (Fill in the missing letters)'
+            },
+            socialnet: {
+                name: 'SocialNet Database', 
+                difficulty: 'Medium',
+                reward: 150,
+                password: 'unlock',
+                cipher: 'VOMPEG',
+                hint: 'Caesar Cipher +6: VOMPEG → ?'
+            },
+            corpnet: {
+                name: 'CorpNet Mainframe',
+                difficulty: 'Hard', 
+                reward: 300,
+                password: 'matrix',
+                sequence: '4-1-7-9-9-6',
+                hint: 'Number sequence on keypad spells: 4-1-7-9-9-6'
+            },
+            quantum: {
+                name: 'Quantum Research Lab',
+                difficulty: 'Expert',
+                reward: 500,
+                password: 'entangled',
+                puzzle: 'quantum',
+                hint: 'Solve the quantum entanglement puzzle'
+            },
+            ai_core: {
+                name: 'AI Core Network',
+                difficulty: 'Master',
+                reward: 1000,
+                password: 'singularity',
+                puzzle: 'binary',
+                hint: 'Decode the binary consciousness'
+            }
+        };
+
+        // Black market items
+        const blackMarketItems = {
+            tools: {
+                'Quantum Decryptor': { cost: 2000, effect: 'cracker', bonus: 0.3 },
+                'Stealth Module': { cost: 1500, effect: 'cleaner', bonus: 0.4 },
+                'Advanced Scanner': { cost: 1800, effect: 'scanner', bonus: 0.25 }
+            },
+            mercenaries: {
+                'Script Kiddie': { 
+                    cost: 200, skill: 'cracker', bonus: 0.1, level: 'Beginner', description: 'Basic password cracking skills', specialties: ['Simple Passwords', 'Basic Encryption']
+                },
+                'Net Runner': { 
+                    cost: 300, skill: 'scanner', bonus: 0.15, level: 'Beginner', description: 'Network scanning specialist', specialties: ['Port Scanning', 'Basic Recon']
+                },
+                'Ghost Byte': { 
+                    cost: 250, skill: 'cleaner', bonus: 0.12, level: 'Beginner', description: 'Entry-level trace cleaner', specialties: ['Basic Log Removal', 'Simple Traces']
+                },
+                'Cipher Master': { 
+                    cost: 800, skill: 'cracker', bonus: 0.25, level: 'Intermediate', description: 'Advanced encryption specialist', specialties: ['Complex Passwords', 'Custom Encryption']
+                },
+                'Network Phantom': { 
+                    cost: 1000, skill: 'scanner', bonus: 0.3, level: 'Intermediate', description: 'Advanced network penetration expert', specialties: ['Vulnerability Scanning', 'Network Mapping']
+                },
+                'Trace Eraser': { 
+                    cost: 900, skill: 'cleaner', bonus: 0.28, level: 'Intermediate', description: 'Advanced trace removal specialist', specialties: ['Deep Clean', 'Pattern Erasure']
+                },
+                'Quantum Breaker': { 
+                    cost: 2000, skill: 'cracker', bonus: 0.4, level: 'Expert', description: 'Quantum encryption specialist', specialties: ['Quantum Encryption', 'Advanced Algorithms']
+                },
+                'System Ghost': { 
+                    cost: 2500, skill: 'scanner', bonus: 0.45, level: 'Expert', description: 'Advanced system penetration expert', specialties: ['Zero-Day Exploits', 'Advanced Recon']
+                },
+                'Shadow Walker': { 
+                    cost: 2200, skill: 'cleaner', bonus: 0.42, level: 'Expert', description: 'Master of digital stealth', specialties: ['Complete Erasure', 'Pattern Rewriting']
+                },
+                'Neural Net': { 
+                    cost: 5000, skill: 'cracker', bonus: 0.6, level: 'Master', description: 'AI-powered cracking specialist', specialties: ['Neural Networks', 'Adaptive Cracking']
+                },
+                'Quantum Phantom': { 
+                    cost: 6000, skill: 'scanner', bonus: 0.65, level: 'Master', description: 'Quantum computing expert', specialties: ['Quantum Scanning', 'Reality Bending']
+                },
+                'Void Walker': { 
+                    cost: 5500, skill: 'cleaner', bonus: 0.62, level: 'Master', description: 'Master of digital void', specialties: ['Reality Rewriting', 'Time Manipulation']
+                }
+            }
+        };
+
+        // Faction missions
+        const factionMissions = {
+            phreakers: [
+                { id: 'p1', title: 'Phone Network Infiltration', reward: 300, heat: 20, difficulty: 'Medium' },
+                { id: 'p2', title: 'Satellite Access', reward: 500, heat: 30, difficulty: 'Hard' }
+            ],
+            cryptos: [
+                { id: 'c1', title: 'Blockchain Analysis', reward: 400, heat: 15, difficulty: 'Medium' },
+                { id: 'c2', title: 'Crypto Exchange Hack', reward: 600, heat: 25, difficulty: 'Hard' }
+            ],
+            anarchists: [
+                { id: 'a1', title: 'Government Database', reward: 800, heat: 40, difficulty: 'Expert' },
+                { id: 'a2', title: 'Corporate Secrets', reward: 1000, heat: 35, difficulty: 'Master' }
+            ]
+        };
+
+        // Safehouse upgrades
+        const safehouseUpgrades = {
+            scannerRoom: {
+                name: 'Enhanced Scanner Room',
+                levels: [
+                    { cost: 100, effect: 'Increases scan speed by 10%', bonus: 0.1 },
+                    { cost: 300, effect: 'Increases scan speed by 20%', bonus: 0.2 },
+                    { cost: 600, effect: 'Increases scan speed by 30%', bonus: 0.3 }
+                ]
+            },
+            firewallLab: {
+                name: 'Advanced Firewall Lab',
+                levels: [
+                    { cost: 150, effect: 'Reduces trace gain by 5%', bonus: 0.05 },
+                    { cost: 400, effect: 'Reduces trace gain by 10%', bonus: 0.1 },
+                    { cost: 800, effect: 'Reduces trace gain by 15%', bonus: 0.15 }
+                ]
+            },
+            cryptoMiner: {
+                name: 'Crypto Miner Rig',
+                levels: [
+                    { cost: 200, effect: 'Generates 1 credit every 30 seconds', interval: 30000, amount: 1 },
+                    { cost: 500, effect: 'Generates 3 credits every 30 seconds', interval: 30000, amount: 3 },
+                    { cost: 1000, effect: 'Generates 7 credits every 30 seconds', interval: 30000, amount: 7 }
+                ]
+            }
+        };
+
+        // Crypto market prices
+        const cryptoMarketPrices = {
+            bitghost: 50,
+            zerocoin: 120
+        };
+
+        // Fluctuate crypto prices
+        function fluctuateCryptoPrices() {
+            const volatility = 0.1;
+            Object.keys(cryptoMarketPrices).forEach(crypto => {
+                const currentPrice = cryptoMarketPrices[crypto];
+                const changePercent = (Math.random() * volatility * 2 - volatility);
+                cryptoMarketPrices[crypto] = Math.max(5, Math.round(currentPrice + currentPrice * changePercent));
+            });
+        }
+        setInterval(fluctuateCryptoPrices, 5 * 60 * 1000);
+        fluctuateCryptoPrices();
+
+        // Available commands
+        const commands = {
+            help: {
+                execute: () => {
+                    addTerminalLine('=== AVAILABLE COMMANDS ===');
+                    addTerminalLine('\n=== CORE COMMANDS ===');
+                    addTerminalLine('scan [target] - Scan a target system');
+                    addTerminalLine('hack [target] - Attempt to hack a system');
+                    addTerminalLine('clean - Clear trace level');
+                    addTerminalLine('status - Show current status');
+                    addTerminalLine('targets - List available targets');
+                    addTerminalLine('clear - Clear terminal output');
+                    addTerminalLine('\n=== TEAM MANAGEMENT ===');
+                    addTerminalLine('hire [hacker|mercenary] [name] - Hire a new team member');
+                    addTerminalLine('team - View your current team');
+                    addTerminalLine('list [hackers|mercenaries] - View available personnel');
+                    addTerminalLine('fire [hacker|mercenary] [name] - Remove a team member');
+                    addTerminalLine('\n=== UPGRADES & SHOPPING ===');
+                    addTerminalLine('upgrade [tool] - Upgrade a specific tool');
+                    addTerminalLine('shop - View available upgrades');
+                    addTerminalLine('blackmarket - Access the black market');
+                    addTerminalLine('buy [item] - Purchase an item from black market');
+                    addTerminalLine('\n=== SAFEHOUSE ===');
+                    addTerminalLine('safehouse - View your safehouse status and upgrades');
+                    addTerminalLine('upgrade_safehouse [upgrade_name] - Upgrade your safehouse');
+                    addTerminalLine('\n=== FACTION SYSTEM ===');
+                    addTerminalLine('factions - View faction status');
+                    addTerminalLine('mission [faction] - View available missions');
+                    addTerminalLine('accept [mission_id] - Accept a faction mission');
+                    addTerminalLine('\n=== HEAT & SECURITY ===');
+                    addTerminalLine('heat - View current heat level');
+                    addTerminalLine('\n=== ACHIEVEMENTS & EASTER EGGS ===');
+                    addTerminalLine('achievements - View unlocked achievements');
+                    addTerminalLine('matrix - Toggle Matrix-style visual effects');
+                    addTerminalLine('hackerman - Special command for high-reputation players');
+                    addTerminalLine('\n=== SAVE SYSTEM ===');
+                    addTerminalLine('save - Save current game state');
+                    addTerminalLine('load - Load last saved game state');
+                    addTerminalLine('\n=== CRYPTO MARKET ===');
+                    addTerminalLine('crypto - View crypto market prices and your holdings');
+                    addTerminalLine('buy_crypto [currency] [amount] - Buy cryptocurrency');
+                    addTerminalLine('sell_crypto [currency] [amount] - Sell cryptocurrency');
+                    addTerminalLine('\n=== CUSTOMIZATION ===');
+                    addTerminalLine('set_prompt [prompt] - Set custom terminal prompt');
+                    enableInput();
+                },
+                description: 'Show available commands'
+            },
+            scan: {
+                execute: (targetName) => {
+                    if (!targetName) {
+                        addTerminalLine('Usage: scan [target_name]');
+                        enableInput();
+                        return;
+                    }
+                    const targetKey = findTargetKeyByName(targetName);
+                    if (targetKey && targets[targetKey]) {
+                        const target = targets[targetKey];
+                        let scanTrace = { Easy: 5, Medium: 10, Hard: 15, Expert: 20, Master: 25 }[target.difficulty];
+                        if (gameState.tools.scanner > 1) scanTrace = Math.max(2, scanTrace * (1 - 0.1 * gameState.tools.scanner));
+                        gameState.traceLevel += scanTrace;
+                        addTerminalLine(`> Scanning ${target.name}...`);
+                        setTimeout(() => {
+                            addTerminalLine(`> Security Level: ${target.difficulty}`);
+                            addTerminalLine(`> Potential Reward: ${target.reward} credits`);
+                            addTerminalLine(`> Trace +${scanTrace}`);
+                            addTerminalLine('> Scan complete. Ready for infiltration.');
+                            updateDisplay();
+                            enableInput();
+                        }, 1000 * (1 - 0.1 * gameState.safehouse.scannerRoom));
+                    } else {
+                        addTerminalLine('> Target not found.');
+                        enableInput();
+                    }
+                },
+                description: 'Scan a target system by its full name'
+            },
+            hack: {
+                execute: (targetName) => {
+                    if (!targetName) {
+                        addTerminalLine('Usage: hack [target_name]');
+                        enableInput();
+                        return;
+                    }
+                    const targetKey = findTargetKeyByName(targetName);
+                    if (targetKey && targets[targetKey]) {
+                        addTerminalLine(`> Initiating hack on ${targets[targetKey].name}...`);
+                        gameState.currentTarget = targetKey;
+                        setTimeout(() => startMinigame(targetKey), 500);
+                    } else {
+                        addTerminalLine('> Target not found.');
+                        enableInput();
+                    }
+                },
+                description: 'Attempt to hack a system by its full name'
+            },
+            clean: {
+                execute: () => {
+                    if (gameState.tools.cleaner > 1) {
+                        gameState.traceLevel = 0;
+                        addTerminalLine('> Trace fully cleared using Trace Cleaner.');
+                    } else {
+                        gameState.traceLevel = Math.max(0, gameState.traceLevel - 20);
+                        addTerminalLine('> Trace reduced by 20.');
+                    }
+                    updateDisplay();
+                    enableInput();
+                },
+                description: 'Clear trace level'
+            },
+            status: {
+                execute: () => {
+                    addTerminalLine('=== SYSTEM STATUS ===');
+                    addTerminalLine(`Credits: ${gameState.credits}`);
+                    addTerminalLine(`Reputation: ${gameState.reputation}`);
+                    addTerminalLine(`Trace Level: ${gameState.traceLevel}%`);
+                    addTerminalLine(`Heat Level: ${gameState.heat}%`);
+                    addTerminalLine(`Rank: ${gameState.rank}`);
+                    addTerminalLine(`Tools: Scanner (Lv${gameState.tools.scanner}), Cracker (Lv${gameState.tools.cracker}), Cleaner (Lv${gameState.tools.cleaner})`);
+                    enableInput();
+                },
+                description: 'Show current status'
+            },
+            targets: {
+                execute: () => {
+                    addTerminalLine('=== AVAILABLE TARGETS ===');
+                    Object.values(targets).forEach(target => {
+                        addTerminalLine(`${target.name} (Difficulty: ${target.difficulty} | Reward: ${target.reward} credits)`);
+                    });
+                    enableInput();
+                },
+                description: 'List available targets'
+            },
+            clear: {
+                execute: () => {
+                    terminalOutput.innerHTML = '';
+                    enableInput();
+                },
+                description: 'Clear terminal output'
+            },
+            upgrade: {
+                execute: (tool) => {
+                    if (!tool) {
+                        addTerminalLine('Usage: upgrade [scanner|cracker|cleaner]');
+                        enableInput();
+                        return;
+                    }
+                    const costs = { scanner: 200, cracker: 300, cleaner: 250 };
+                    if (!costs[tool]) {
+                        addTerminalLine('> Invalid tool.');
+                        enableInput();
+                        return;
+                    }
+                    const cost = costs[tool] * gameState.tools[tool];
+                    if (gameState.credits < cost) {
+                        addTerminalLine(`> Not enough credits. Cost: ${cost}`);
+                        enableInput();
+                        return;
+                    }
+                    gameState.credits -= cost;
+                    gameState.tools[tool]++;
+                    addTerminalLine(`> ${tool.toUpperCase()} upgraded to level ${gameState.tools[tool]}`);
+                    updateDisplay();
+                    enableInput();
+                },
+                description: 'Upgrade a tool'
+            },
+            shop: {
+                execute: () => {
+                    addTerminalLine('=== UPGRADE SHOP ===');
+                    addTerminalLine('Scanner Upgrade: 200 credits per level');
+                    addTerminalLine('Cracker Upgrade: 300 credits per level');
+                    addTerminalLine('Cleaner Upgrade: 250 credits per level');
+                    addTerminalLine('');
+                    addTerminalLine(`Current levels: Scanner ${gameState.tools.scanner}, Cracker ${gameState.tools.cracker}, Cleaner ${gameState.tools.cleaner}`);
+                    enableInput();
+                },
+                description: 'View available upgrades'
+            },
+            blackmarket: {
+                execute: () => {
+                    addTerminalLine('=== BLACK MARKET ===');
+                    addTerminalLine('Available Tools:');
+                    Object.entries(blackMarketItems.tools).forEach(([name, item]) => {
+                        addTerminalLine(`${name}: ${item.cost} credits (${item.effect} +${item.bonus * 100}%)`);
+                    });
+                    addTerminalLine('\nAvailable Mercenaries:');
+                    Object.entries(blackMarketItems.mercenaries).forEach(([name, merc]) => {
+                        addTerminalLine(`${name}: ${merc.cost} credits (${merc.skill} +${merc.bonus * 100}%)`);
+                    });
+                    enableInput();
+                },
+                description: 'Access the black market'
+            },
+            buy: {
+                execute: (item) => {
+                    const marketItem = blackMarketItems.tools[item];
+                    if (!marketItem) {
+                        addTerminalLine('> Item not found.');
+                        enableInput();
+                        return;
+                    }
+                    if (gameState.credits < marketItem.cost) {
+                        addTerminalLine(`> Not enough credits. Cost: ${marketItem.cost}`);
+                        enableInput();
+                        return;
+                    }
+                    gameState.credits -= marketItem.cost;
+                    gameState.tools[marketItem.effect] += marketItem.bonus;
+                    addTerminalLine(`> Purchased ${item}! ${marketItem.effect} upgraded.`);
+                    updateDisplay();
+                    enableInput();
+                },
+                description: 'Purchase an item from black market'
+            },
+            hire: {
+                execute: (args) => {
+                    const [type, ...nameParts] = args.split(' ');
+                    const name = nameParts.join(' ');
+                    if (!type || !name || !['hacker', 'mercenary'].includes(type.toLowerCase())) {
+                        addTerminalLine('Usage: hire [hacker|mercenary] [name]');
+                        enableInput();
+                        return;
+                    }
+                    const personnel = blackMarketItems.mercenaries[name];
+                    if (!personnel) {
+                        addTerminalLine('> Personnel not found.');
+                        enableInput();
+                        return;
+                    }
+                    if (gameState.credits < personnel.cost) {
+                        addTerminalLine(`> Not enough credits. Cost: ${personnel.cost}`);
+                        enableInput();
+                        return;
+                    }
+                    gameState.credits -= personnel.cost;
+                    gameState.team[type + 's'].push({ name, ...personnel });
+                    addTerminalLine(`> Hired ${name}!`);
+                    updateDisplay();
+                    enableInput();
+                },
+                description: 'Hire a hacker or mercenary'
+            },
+            team: {
+                execute: () => {
+                    addTerminalLine('=== YOUR TEAM ===');
+                    if (!gameState.team.hackers.length && !gameState.team.mercenaries.length) {
+                        addTerminalLine('No personnel hired.');
+                        enableInput();
+                        return;
+                    }
+                    if (gameState.team.hackers.length) {
+                        addTerminalLine('Hackers:');
+                        gameState.team.hackers.forEach(h => addTerminalLine(`- ${h.name} (${h.skill})`));
+                    }
+                    if (gameState.team.mercenaries.length) {
+                        addTerminalLine('Mercenaries:');
+                        gameState.team.mercenaries.forEach(m => addTerminalLine(`- ${m.name} (${m.skill})`));
+                    }
+                    enableInput();
+                },
+                description: 'View your current team'
+            },
+            list: {
+                execute: (type) => {
+                    if (!['hackers', 'mercenaries'].includes(type)) {
+                        addTerminalLine('Usage: list [hackers|mercenaries]');
+                        enableInput();
+                        return;
+                    }
+                    addTerminalLine(`=== AVAILABLE ${type.toUpperCase()} ===`);
+                    Object.entries(blackMarketItems.mercenaries).forEach(([name, merc]) => {
+                        addTerminalLine(`${name}: ${merc.cost} credits (${merc.skill} +${merc.bonus * 100}%)`);
+                    });
+                    enableInput();
+                },
+                description: 'List available hackers or mercenaries'
+            },
+            fire: {
+                execute: (args) => {
+                    const [type, ...nameParts] = args.split(' ');
+                    const name = nameParts.join(' ');
+                    if (!type || !name || !['hacker', 'mercenary'].includes(type.toLowerCase())) {
+                        addTerminalLine('Usage: fire [hacker|mercenary] [name]');
+                        enableInput();
+                        return;
+                    }
+                    const team = gameState.team[type + 's'];
+                    const index = team.findIndex(p => p.name === name);
+                    if (index === -1) {
+                        addTerminalLine(`> ${name} not found.`);
+                        enableInput();
+                        return;
+                    }
+                    team.splice(index, 1);
+                    addTerminalLine(`> Fired ${name}.`);
+                    updateDisplay();
+                    enableInput();
+                },
+                description: 'Fire a team member'
+            },
+            factions: {
+                execute: () => {
+                    addTerminalLine('=== FACTION STATUS ===');
+                    Object.entries(gameState.factions).forEach(([faction, data]) => {
+                        addTerminalLine(`${faction.toUpperCase()}: ${data.reputation} reputation`);
+                        if (data.missions.length) {
+                            addTerminalLine('Active Missions:');
+                            data.missions.forEach(m => addTerminalLine(`- ${m.title} (${m.difficulty})`));
+                        }
+                    });
+                    enableInput();
+                },
+                description: 'View faction status'
+            },
+            mission: {
+                execute: (faction) => {
+                    if (!faction) {
+                        addTerminalLine('Usage: mission [faction]');
+                        enableInput();
+                        return;
+                    }
+                    const missions = factionMissions[faction.toLowerCase()];
+                    if (!missions) {
+                        addTerminalLine('> Faction not found.');
+                        enableInput();
+                        return;
+                    }
+                    addTerminalLine(`=== ${faction.toUpperCase()} MISSIONS ===`);
+                    missions.forEach(m => {
+                        addTerminalLine(`${m.id}: ${m.title} (Reward: ${m.reward}, Heat: +${m.heat})`);
+                    });
+                    enableInput();
+                },
+                description: 'View available missions for a faction'
+            },
+            accept: {
+                execute: (missionId) => {
+                    if (!missionId) {
+                        addTerminalLine('Usage: accept [mission_id]');
+                        enableInput();
+                        return;
+                    }
+                    let mission = null;
+                    let faction = null;
+                    Object.entries(factionMissions).forEach(([f, missions]) => {
+                        const found = missions.find(m => m.id === missionId);
+                        if (found) {
+                            mission = found;
+                            faction = f;
+                        }
+                    });
+                    if (!mission) {
+                        addTerminalLine('> Mission not found.');
+                        enableInput();
+                        return;
+                    }
+                    gameState.factions[faction].missions.push(mission);
+                    addTerminalLine(`> Accepted mission: ${mission.title}`);
+                    updateDisplay();
+                    enableInput();
+                },
+                description: 'Accept a faction mission'
+            },
+            heat: {
+                execute: () => {
+                    addTerminalLine('=== HEAT STATUS ===');
+                    addTerminalLine(`Current Heat: ${gameState.heat}%`);
+                    addTerminalLine(`Wanted: ${gameState.wanted ? 'YES' : 'NO'}`);
+                    enableInput();
+                },
+                description: 'View heat status'
+            },
+            safehouse: {
+                execute: () => {
+                    addTerminalLine('=== YOUR SAFEHOUSE ===');
+                    Object.entries(gameState.safehouse).forEach(([key, level]) => {
+                        const upgrade = safehouseUpgrades[key];
+                        addTerminalLine(`${upgrade.name}: Level ${level}`);
+                        if (upgrade.levels[level]) {
+                            addTerminalLine(`Next: ${upgrade.levels[level].effect} (Cost: ${upgrade.levels[level].cost})`);
+                        }
+                    });
+                    enableInput();
+                },
+                description: 'View safehouse status and upgrades'
+            },
+            upgrade_safehouse: {
+                execute: (upgradeName) => {
+                    if (!upgradeName) {
+                        addTerminalLine('Usage: upgrade_safehouse [scannerRoom|firewallLab|cryptoMiner]');
+                        enableInput();
+                        return;
+                    }
+                    const upgrade = safehouseUpgrades[upgradeName];
+                    if (!upgrade) {
+                        addTerminalLine('> Invalid upgrade.');
+                        enableInput();
+                        return;
+                    }
+                    const level = gameState.safehouse[upgradeName];
+                    if (!upgrade.levels[level]) {
+                        addTerminalLine('> Max level reached.');
+                        enableInput();
+                        return;
+                    }
+                    if (gameState.credits < upgrade.levels[level].cost) {
+                        addTerminalLine(`> Not enough credits. Cost: ${upgrade.levels[level].cost}`);
+                        enableInput();
+                        return;
+                    }
+                    gameState.credits -= upgrade.levels[level].cost;
+                    gameState.safehouse[upgradeName]++;
+                    addTerminalLine(`> Upgraded ${upgrade.name} to Level ${gameState.safehouse[upgradeName]}`);
+                    if (upgradeName === 'cryptoMiner') {
+                        if (gameState.safehouse.cryptoMinerTimer) clearInterval(gameState.safehouse.cryptoMinerTimer);
+                        const miner = upgrade.levels[gameState.safehouse[upgradeName] - 1];
+                        if (miner) {
+                            gameState.safehouse.cryptoMinerTimer = setInterval(() => {
+                                gameState.credits += miner.amount;
+                                updateDisplay();
+                            }, miner.interval);
+                        }
+                    }
+                    updateDisplay();
+                    enableInput();
+                },
+                description: 'Upgrade your safehouse'
+            },
+            crypto: {
+                execute: () => {
+                    addTerminalLine('=== CRYPTO MARKET ===');
+                    Object.entries(cryptoMarketPrices).forEach(([crypto, price]) => {
+                        addTerminalLine(`${crypto}: ${price} credits/unit`);
+                    });
+                    addTerminalLine('\n=== YOUR HOLDINGS ===');
+                    Object.entries(gameState.cryptoHoldings).forEach(([crypto, amount]) => {
+                        addTerminalLine(`${crypto}: ${amount} units`);
+                    });
+                    enableInput();
+                },
+                description: 'View crypto market prices and holdings'
+            },
+            buy_crypto: {
+                execute: (args) => {
+                    const [currency, amount] = args.split(' ');
+                    if (!currency || !amount || isNaN(amount) || amount <= 0) {
+                        addTerminalLine('Usage: buy_crypto [bitghost|zerocoin] [amount]');
+                        enableInput();
+                        return;
+                    }
+                    const price = cryptoMarketPrices[currency.toLowerCase()];
+                    if (!price) {
+                        addTerminalLine('> Invalid currency.');
+                        enableInput();
+                        return;
+                    }
+                    const cost = price * amount;
+                    if (gameState.credits < cost) {
+                        addTerminalLine(`> Not enough credits. Cost: ${cost}`);
+                        enableInput();
+                        return;
+                    }
+                    gameState.credits -= cost;
+                    gameState.cryptoHoldings[currency.toLowerCase()] += parseInt(amount);
+                    addTerminalLine(`> Bought ${amount} ${currency} for ${cost} credits.`);
+                    updateDisplay();
+                    enableInput();
+                },
+                description: 'Buy cryptocurrency'
+            },
+            sell_crypto: {
+                execute: (args) => {
+                    const [currency, amount] = args.split(' ');
+                    if (!currency || !amount || isNaN(amount) || amount <= 0) {
+                        addTerminalLine('Usage: sell_crypto [bitghost|zerocoin] [amount]');
+                        enableInput();
+                        return;
+                    }
+                    const price = cryptoMarketPrices[currency.toLowerCase()];
+                    if (!price) {
+                        addTerminalLine('> Invalid currency.');
+                        enableInput();
+                        return;
+                    }
+                    if (gameState.cryptoHoldings[currency.toLowerCase()] < amount) {
+                        addTerminalLine('> Not enough holdings.');
+                        enableInput();
+                        return;
+                    }
+                    gameState.credits += price * amount;
+                    gameState.cryptoHoldings[currency.toLowerCase()] -= parseInt(amount);
+                    addTerminalLine(`> Sold ${amount} ${currency} for ${price * amount} credits.`);
+                    updateDisplay();
+                    enableInput();
+                },
+                description: 'Sell cryptocurrency'
+            },
+            set_prompt: {
+                execute: (prompt) => {
+                    if (!prompt) {
+                        addTerminalLine('Usage: set_prompt [prompt]');
+                        enableInput();
+                        return;
+                    }
+                    gameState.customPrompt = prompt + ' ';
+                    addTerminalLine(`> Prompt set to: ${gameState.customPrompt}`);
+                    updateDisplay();
+                    enableInput();
+                },
+                description: 'Set custom terminal prompt'
+            },
+            achievements: {
+                execute: () => {
+                    addTerminalLine('=== ACHIEVEMENTS ===');
+                    if (!gameState.achievements.length) {
+                        addTerminalLine('No achievements unlocked.');
+                        enableInput();
+                        return;
+                    }
+                    gameState.achievements.forEach(a => addTerminalLine(`- ${a}`));
+                    enableInput();
+                },
+                description: 'View unlocked achievements'
+            },
+            matrix: {
+                execute: () => {
+                    gameState.easterEggs.matrix = !gameState.easterEggs.matrix;
+                    document.body.classList.toggle('matrix-mode');
+                    addTerminalLine(gameState.easterEggs.matrix ? '> Matrix mode activated.' : '> Matrix mode deactivated.');
+                    enableInput();
+                },
+                description: 'Toggle Matrix-style visual effects'
+            },
+            hackerman: {
+                execute: () => {
+                    if (gameState.reputation >= 1000) {
+                        gameState.easterEggs.hackerman = true;
+                        addTerminalLine('> You are now a true hackerman!');
+                        if (!gameState.achievements.includes('Hackerman Status')) {
+                            gameState.achievements.push('Hackerman Status');
+                            addTerminalLine('> Achievement unlocked: Hackerman Status!');
+                        }
+                    } else {
+                        addTerminalLine('> Requires 1000+ reputation.');
+                    }
+                    updateDisplay();
+                    enableInput();
+                },
+                description: 'Special command for high-reputation players'
+            },
+            save: {
+                execute: () => {
+                    localStorage.setItem('nexusSave', JSON.stringify(gameState));
+                    addTerminalLine('> Game state saved.');
+                    enableInput();
+                },
+                description: 'Save current game state'
+            },
+            load: {
+                execute: () => {
+                    const saveData = localStorage.getItem('nexusSave');
+                    if (saveData) {
+                        gameState = { ...gameState, ...JSON.parse(saveData) };
+                        addTerminalLine('> Game state loaded.');
+                        updateDisplay();
+                    } else {
+                        addTerminalLine('> No save data found.');
+                    }
+                    enableInput();
+                },
+                description: 'Load last saved game state'
+            }
+        };
+
+        // Helper function to find target key by name
+        function findTargetKeyByName(name) {
+            return Object.keys(targets).find(key => targets[key].name.toLowerCase() === name.toLowerCase()) || null;
+        }
+
+        // Process command
+        function processCommand(input) {
+            if (gameState.commandEntered) return;
+            gameState.commandEntered = true;
+            commandInput.disabled = true;
+            addTerminalLine(`${gameState.customPrompt}${input}`);
+            gameState.commandHistory.push(input);
+            gameState.historyIndex = -1;
+            const [command, ...args] = input.trim().split(' ');
+            if (commands[command.toLowerCase()]) {
+                commands[command.toLowerCase()].execute(args.join(' '));
+            } else {
+                addTerminalLine('> Command not recognized. Type "help" for commands.');
+                enableInput();
+            }
+        }
+
+        // Enable input after command processing
+        function enableInput() {
+            gameState.commandEntered = false;
+            commandInput.disabled = false;
+            commandInput.focus();
+        }
+
+        // Command input handler
+        commandInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !gameState.commandEntered) {
+                const command = commandInput.value.trim();
+                if (command) processCommand(command);
+                commandInput.value = '';
+            } else if (e.key === 'Tab') {
+                e.preventDefault();
+                const input = commandInput.value;
+                const suggestions = getCommandSuggestions(input);
+                if (suggestions.length === 1) {
+                    const parts = input.split(' ');
+                    parts[parts.length - 1] = suggestions[0];
+                    commandInput.value = parts.join(' ');
+                } else if (suggestions.length > 1) {
+                    addTerminalLine('> Available completions:');
+                    suggestions.forEach(s => addTerminalLine(`- ${s}`));
+                }
+            }
+        });
+
+        function getCommandSuggestions(input) {
+            const parts = input.trim().split(' ');
+            const command = parts[0].toLowerCase();
+            const args = parts.slice(1);
+            if (args.length === 0) {
+                return Object.keys(commands).filter(cmd => cmd.startsWith(command));
+            }
+            switch (command) {
+                case 'scan':
+                case 'hack':
+                    return Object.keys(targets).filter(t => t.startsWith(args[0].toLowerCase()));
+                case 'upgrade':
+                    return ['scanner', 'cracker', 'cleaner'].filter(t => t.startsWith(args[0].toLowerCase()));
+                case 'mission':
+                    return Object.keys(factionMissions).filter(f => f.startsWith(args[0].toLowerCase()));
+                case 'buy':
+                    return Object.keys(blackMarketItems.tools).filter(i => i.toLowerCase().startsWith(args[0].toLowerCase()));
+                case 'hire':
+                    return Object.keys(blackMarketItems.mercenaries).filter(m => m.toLowerCase().startsWith(args[0].toLowerCase()));
+                case 'buy_crypto':
+                case 'sell_crypto':
+                    return ['bitghost', 'zerocoin'].filter(c => c.toLowerCase().startsWith(args[0].toLowerCase()));
+                default:
+                    return [];
+            }
+        }
+
+        // Minigame logic
+        function startMinigame(targetKey) {
+            const target = targets[targetKey];
+            document.getElementById('minigame-title').textContent = `HACKING: ${target.name}`;
+            let puzzleHTML = '';
+            if (targetKey === 'gameserver') {
+                puzzleHTML = `
+                    <div class="password-challenge">
+                        <div class="password-hint">SECURITY PATTERN DETECTED</div>
+                        <div class="puzzle-visual">${target.pattern}</div>
+                        <div class="password-hint">${target.hint}</div>
+                        <input type="text" class="password-input" id="password-input" placeholder="Enter the complete word...">
+                        <button class="btn" onclick="checkPassword(document.getElementById('password-input').value, '${targetKey}')">DECRYPT</button>
+                        <button class="btn" onclick="closeMinigame()">ABORT</button>
+                    </div>
+                `;
+            } else if (targetKey === 'socialnet') {
+                puzzleHTML = `
+                    <div class="password-challenge">
+                        <div class="password-hint">ENCRYPTED ACCESS CODE FOUND</div>
+                        <div class="puzzle-visual"><div class="cipher-text">${target.cipher}</div></div>
+                        <div class="password-hint">${target.hint}</div>
+                        <input type="text" class="password-input" id="password-input" placeholder="Enter decrypted word...">
+                        <button class="btn" onclick="checkPassword(document.getElementById('password-input').value, '${targetKey}')">DECRYPT</button>
+                        <button class="btn" onclick="closeMinigame()">ABORT</button>
+                    </div>
+                `;
+            } else if (targetKey === 'corpnet') {
+                puzzleHTML = `
+                    <div class="password-challenge">
+                        <div class="password-hint">KEYPAD SEQUENCE DETECTED</div>
+                        <div class="keypad-visual">
+                            <div class="key">1<br>ABC</div>
+                            <div class="key">2<br>DEF</div>
+                            <div class="key">3<br>GHI</div>
+                            <div class="key highlight">4<br>JKL</div>
+                            <div class="key">5<br>MNO</div>
+                            <div class="key">6<br>PQR</div>
+                            <div class="key highlight">7<br>STU</div>
+                            <div class="key">8<br>VWX</div>
+                            <div class="key highlight">9<br>YZ</div>
+                        </div>
+                        <div class="password-hint">${target.hint}</div>
+                        <input type="text" class="password-input" id="password-input" placeholder="What word do the highlighted keys spell?">
+                        <button class="btn" onclick="checkPassword(document.getElementById('password-input').value, '${targetKey}')">DECRYPT</button>
+                        <button class="btn" onclick="closeMinigame()">ABORT</button>
+                    </div>
+                `;
+            } else if (targetKey === 'quantum') {
+                puzzleHTML = `
+                    <div class="password-challenge">
+                        <div class="password-hint">ALIGN THE FLUCTUATING QUBITS</div>
+                        <div id="quantum-qubits" style="display: flex; justify-content: center; gap: 10px; margin: 20px 0;"></div>
+                        <div class="password-hint">Match the target state!</div>
+                        <button class="btn" onclick="checkQuantumPuzzle()">DECODE</button>
+                        <button class="btn" onclick="closeMinigame()">ABORT</button>
+                    </div>
+                `;
+            } else if (targetKey === 'ai_core') {
+                puzzleHTML = `
+                    <div class="password-challenge">
+                        <div class="password-hint">SYNCHRONIZE WITH THE BINARY STREAM</div>
+                        <div id="binary-stream" style="font-size: 24px; text-align: center; margin: 20px 0; overflow: hidden; white-space: nowrap;"></div>
+                        <div class="password-hint">Press spacebar when the target pattern appears!</div>
+                        <div id="target-pattern" style="font-size: 18px; text-align: center; color: yellow; margin-top: 10px;"></div>
+                        <button class="btn" onclick="closeMinigame()">ABORT</button>
+                    </div>
+                `;
+            }
+            document.getElementById('minigame-content').innerHTML = puzzleHTML;
+            minigameOverlay.style.display = 'flex';
+            if (targetKey === 'quantum') setupQuantumPuzzle(target.password);
+            if (targetKey === 'ai_core') setupBinaryPuzzle(target.password);
+            setTimeout(() => {
+                const input = document.getElementById('password-input');
+                if (input) input.focus();
+            }, 10);
+        }
+
+        function checkPassword(input, targetKey) {
+            const target = targets[targetKey];
+            if (input.toLowerCase() === target.password.toLowerCase()) {
+                addTerminalLine(`> Access granted to ${target.name}.`);
+                gameState.credits += target.reward;
+                gameState.reputation += Math.floor(target.reward / 10);
+                const traceIncrease = { Easy: 5, Medium: 10, Hard: 15, Expert: 25, Master: 40 }[target.difficulty];
+                gameState.traceLevel += traceIncrease;
+                gameState.achievements.push(`${target.difficulty} Hacker`);
+                addTerminalLine(`> Achievement unlocked: ${target.difficulty} Hacker`);
+                updateDisplay();
+                closeMinigame();
+            } else {
+                addTerminalLine('> Access denied.');
+                gameState.traceLevel += { Easy: 2, Medium: 5, Hard: 10, Expert: 15, Master: 20 }[target.difficulty];
+                updateDisplay();
+                closeMinigame();
+            }
+        }
+
+        let quantumState = [];
+        let targetQuantumState = [];
+
+        function setupQuantumPuzzle(password) {
+            const qubitsContainer = document.getElementById('quantum-qubits');
+            quantumState = Array(password.length).fill(0);
+            targetQuantumState = password.split('').map(bit => parseInt(bit));
+            qubitsContainer.innerHTML = '';
+            for (let i = 0; i < password.length; i++) {
+                const qubit = document.createElement('div');
+                qubit.className = 'qubit';
+                qubit.style.cssText = 'width: 30px; height: 30px; background: #333; border: 1px solid #00ff00; display: flex; justify-content: center; align-items: center; cursor: pointer;';
+                qubit.textContent = quantumState[i];
+                qubit.dataset.index = i;
+                qubit.onclick = toggleQubit;
+                qubitsContainer.appendChild(qubit);
+            }
+        }
+
+        function toggleQubit(event) {
+            const index = parseInt(event.target.dataset.index);
+            quantumState[index] = 1 - quantumState[index];
+            event.target.textContent = quantumState[index];
+            event.target.style.background = quantumState[index] ? '#00ff00' : '#333';
+            event.target.style.color = quantumState[index] ? '#0a0a0a' : '#00ff00';
+        }
+
+        function checkQuantumPuzzle() {
+            if (quantumState.every((state, i) => state === targetQuantumState[i])) {
+                hackSuccess(targets[gameState.currentTarget]);
+            } else {
+                hackFailure(targets[gameState.currentTarget]);
+            }
+        }
+
+        let binaryStreamInterval;
+        let binarySequence = '';
+        let targetBinaryPattern = '';
+
+        function setupBinaryPuzzle(password) {
+            const streamElement = document.getElementById('binary-stream');
+            const patternElement = document.getElementById('target-pattern');
+            targetBinaryPattern = password;
+            patternElement.textContent = `Target Pattern: ${targetBinaryPattern}`;
+            binarySequence = Array(200).fill(0).map(() => Math.random() > 0.5 ? '1' : '0').join('');
+            let streamPosition = 0;
+            binaryStreamInterval = setInterval(() => {
+                streamElement.textContent = binarySequence.substring(streamPosition, streamPosition + 30);
+                streamPosition = (streamPosition + 1) % (binarySequence.length - 30);
+            }, 100);
+            document.addEventListener('keydown', handleBinaryInput);
+        }
+
+        function handleBinaryInput(event) {
+            if (event.key === ' ') {
+                event.preventDefault();
+                checkBinaryPuzzle();
+            }
+        }
+
+        function checkBinaryPuzzle() {
+            const streamElement = document.getElementById('binary-stream');
+            if (streamElement.textContent.includes(targetBinaryPattern)) {
+                hackSuccess(targets[gameState.currentTarget]);
+            } else {
+                hackFailure(targets[gameState.currentTarget]);
+            }
+            clearInterval(binaryStreamInterval);
+            document.removeEventListener('keydown', handleBinaryInput);
+            closeMinigame();
+        }
+
+        function hackSuccess(target) {
+            if (!gameState.currentTarget || !target) {
+                addTerminalLine('> Error: Invalid target.');
+                closeMinigame();
+                return;
+            }
+            addTerminalLine(`> Access granted to ${target.name}.`);
+            gameState.credits += target.reward;
+            gameState.reputation += Math.floor(target.reward / 10);
+            const traceIncrease = { Easy: 5, Medium: 10, Hard: 15, Expert: 25, Master: 40 }[target.difficulty];
+            gameState.traceLevel += traceIncrease;
+            if (!gameState.achievements.includes(`${target.difficulty} Hacker`)) {
+                gameState.achievements.push(`${target.difficulty} Hacker`);
+                addTerminalLine(`> Achievement unlocked: ${target.difficulty} Hacker`);
+            }
+            updateDisplay();
+            closeMinigame();
+        }
+
+        function hackFailure(target) {
+            if (!gameState.currentTarget || !target) {
+                addTerminalLine('> Error: Invalid target.');
+                closeMinigame();
+                return;
+            }
+            addTerminalLine('> Access denied.');
+            gameState.traceLevel += { Easy: 2, Medium: 5, Hard: 10, Expert: 15, Master: 20 }[target.difficulty];
+            updateDisplay();
+            closeMinigame();
+        }
+
+        function closeMinigame() {
+            minigameOverlay.style.display = 'none';
+            gameState.currentTarget = null;
+            document.removeEventListener('keydown', handleBinaryInput);
+            enableInput();
+        }
+
+        // Initialize game
+        updateDisplay();
+    </script>
+</body>
+</html>
